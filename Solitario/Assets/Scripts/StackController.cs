@@ -5,10 +5,9 @@ using UnityEngine;
 
 public class StackController : MonoBehaviour
 {
-    public List<GameObject> cardList;
+    public List<CardController> cardList;
 
     private BoxCollider2D boxCollider2D;
-
 
     private void Awake()
     {
@@ -27,26 +26,26 @@ public class StackController : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        CardController cardController = other.GetComponent<CardController>();
+    //private void OnTriggerEnter2D(Collider2D other)
+    //{
+    //    CardController cardController = other.GetComponent<CardController>();
 
-        if (cardController)
-        {
-            //Set the new parent stack
-            cardList.Add(cardController.gameObject);
-            cardController.parentStack = this;
-        }
-    }
+    //    if (cardController)
+    //    {
+    //        //Set the new parent stack
+    //        cardList.Add(cardController);
+    //        cardController.parentStack = this;
+    //    }
+    //}
 
-    private void OnTriggerExit2D(Collider2D other)
-    {
-        CardController cardController = other.GetComponent<CardController>();
+    //private void OnTriggerExit2D(Collider2D other)
+    //{
+    //    CardController cardController = other.GetComponent<CardController>();
 
-        if (cardController)
-        {
-            //Set the new parent stack
-            cardList.Remove(cardController.gameObject);
-        }
-    }
+    //    if (cardController)
+    //    {
+    //        //Set the new parent stack
+    //        cardList.Remove(cardController);
+    //    }
+    //}
 }

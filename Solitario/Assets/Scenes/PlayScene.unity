@@ -150,185 +150,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f09af7560221e346b1910603f35f678, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardReference: {fileID: 22781414874328153, guid: 3329606f9b75692468d4199b43a91ec6,
-    type: 3}
+  cardReference:
+    m_AssetGUID: 3329606f9b75692468d4199b43a91ec6
   seamsReference:
-  - {fileID: 21300000, guid: 7d19319d8fd935b41976fcdcb48317f6, type: 3}
-  - {fileID: 21300000, guid: 244cbd48610f53e44aacb7af67658e0e, type: 3}
-  - {fileID: 21300000, guid: 1498ef5aa3f02714485f39d094be67eb, type: 3}
-  - {fileID: 21300000, guid: b0dae4d72f698f04fa739e680189ede0, type: 3}
+  - m_AssetGUID: 7d19319d8fd935b41976fcdcb48317f6
+  - m_AssetGUID: 244cbd48610f53e44aacb7af67658e0e
+  - m_AssetGUID: 1498ef5aa3f02714485f39d094be67eb
+  - m_AssetGUID: b0dae4d72f698f04fa739e680189ede0
   valuesReference:
-  - {fileID: 21300000, guid: 85c0784b65109904f84a04f0954eb406, type: 3}
-  - {fileID: 21300000, guid: efe003f578d656f4081ca0ae1a2ce1f3, type: 3}
-  - {fileID: 21300000, guid: 7c4e9822270081546ae9f3af8cc895d4, type: 3}
-  - {fileID: 21300000, guid: 72efc959647be1444ae9f9d21083efb4, type: 3}
-  - {fileID: 21300000, guid: 59caef97cf4368d47ba5840f4ea5594f, type: 3}
-  - {fileID: 21300000, guid: 19423ded55f12a846b78d9f85ad56925, type: 3}
-  - {fileID: 21300000, guid: 9a21a52b2e544164a91f897130cfa7d6, type: 3}
-  - {fileID: 21300000, guid: 2d5e807948e4a7046b7d2825765a0568, type: 3}
-  - {fileID: 21300000, guid: 3eff23b898397ea4391274971653c988, type: 3}
-  - {fileID: 21300000, guid: 124ef330e12748d40944996ae97e673b, type: 3}
-  - {fileID: 21300000, guid: f3cd0e4e9d39f9c4489cdc30e6f5d26c, type: 3}
-  - {fileID: 21300000, guid: 61a213113e387b541b9e6cdfad04d04b, type: 3}
-  - {fileID: 21300000, guid: 77d32101d8399724b980b0d34dff3ed2, type: 3}
-  deck:
-    cards:
-    - value: 1
-      seam: hearts
-      color: red
-    - value: 2
-      seam: hearts
-      color: red
-    - value: 3
-      seam: hearts
-      color: red
-    - value: 4
-      seam: hearts
-      color: red
-    - value: 5
-      seam: hearts
-      color: red
-    - value: 6
-      seam: hearts
-      color: red
-    - value: 7
-      seam: hearts
-      color: red
-    - value: 8
-      seam: hearts
-      color: red
-    - value: 9
-      seam: hearts
-      color: red
-    - value: 10
-      seam: hearts
-      color: red
-    - value: 11
-      seam: hearts
-      color: red
-    - value: 12
-      seam: hearts
-      color: red
-    - value: 13
-      seam: hearts
-      color: red
-    - value: 1
-      seam: diamonds
-      color: red
-    - value: 2
-      seam: diamonds
-      color: red
-    - value: 3
-      seam: diamonds
-      color: red
-    - value: 4
-      seam: diamonds
-      color: red
-    - value: 5
-      seam: diamonds
-      color: red
-    - value: 6
-      seam: diamonds
-      color: red
-    - value: 7
-      seam: diamonds
-      color: red
-    - value: 8
-      seam: diamonds
-      color: red
-    - value: 9
-      seam: diamonds
-      color: red
-    - value: 10
-      seam: diamonds
-      color: red
-    - value: 11
-      seam: diamonds
-      color: red
-    - value: 12
-      seam: diamonds
-      color: red
-    - value: 13
-      seam: diamonds
-      color: red
-    - value: 1
-      seam: clubs
-      color: black
-    - value: 2
-      seam: clubs
-      color: black
-    - value: 3
-      seam: clubs
-      color: black
-    - value: 4
-      seam: clubs
-      color: black
-    - value: 5
-      seam: clubs
-      color: black
-    - value: 6
-      seam: clubs
-      color: black
-    - value: 7
-      seam: clubs
-      color: black
-    - value: 8
-      seam: clubs
-      color: black
-    - value: 9
-      seam: clubs
-      color: black
-    - value: 10
-      seam: clubs
-      color: black
-    - value: 11
-      seam: clubs
-      color: black
-    - value: 12
-      seam: clubs
-      color: black
-    - value: 13
-      seam: clubs
-      color: black
-    - value: 1
-      seam: spades
-      color: black
-    - value: 2
-      seam: spades
-      color: black
-    - value: 3
-      seam: spades
-      color: black
-    - value: 4
-      seam: spades
-      color: black
-    - value: 5
-      seam: spades
-      color: black
-    - value: 6
-      seam: spades
-      color: black
-    - value: 7
-      seam: spades
-      color: black
-    - value: 8
-      seam: spades
-      color: black
-    - value: 9
-      seam: spades
-      color: black
-    - value: 10
-      seam: spades
-      color: black
-    - value: 11
-      seam: spades
-      color: black
-    - value: 12
-      seam: spades
-      color: black
-    - value: 13
-      seam: spades
-      color: black
+  - m_AssetGUID: 85c0784b65109904f84a04f0954eb406
+  - m_AssetGUID: efe003f578d656f4081ca0ae1a2ce1f3
+  - m_AssetGUID: 7c4e9822270081546ae9f3af8cc895d4
+  - m_AssetGUID: 72efc959647be1444ae9f9d21083efb4
+  - m_AssetGUID: 59caef97cf4368d47ba5840f4ea5594f
+  - m_AssetGUID: 19423ded55f12a846b78d9f85ad56925
+  - m_AssetGUID: 9a21a52b2e544164a91f897130cfa7d6
+  - m_AssetGUID: 2d5e807948e4a7046b7d2825765a0568
+  - m_AssetGUID: 3eff23b898397ea4391274971653c988
+  - m_AssetGUID: 124ef330e12748d40944996ae97e673b
+  - m_AssetGUID: f3cd0e4e9d39f9c4489cdc30e6f5d26c
+  - m_AssetGUID: 61a213113e387b541b9e6cdfad04d04b
+  - m_AssetGUID: 77d32101d8399724b980b0d34dff3ed2
   deckStack: {fileID: 141900139}
   spawnStack: {fileID: 430463595}
   bottomStacks:
@@ -340,10 +182,10 @@ MonoBehaviour:
   - {fileID: 1712366361}
   - {fileID: 2013442249}
   finalStacks:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 1701270413}
+  - {fileID: 1769802259}
+  - {fileID: 1792841293}
+  - {fileID: 1110041026}
 --- !u!4 &4443040
 Transform:
   m_ObjectHideFlags: 0
@@ -2072,6 +1914,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1096704477}
   m_CullTransparentMesh: 0
+--- !u!114 &1110041026 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8369869415996924724, guid: 769e0357f80ab0940b717ad26161fb55,
+    type: 3}
+  m_PrefabInstance: {fileID: 720397931}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 867556bcdb872ad49b3db076e9cee872, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &1213929171 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3386750122083608504, guid: 769e0357f80ab0940b717ad26161fb55,
@@ -3018,6 +2872,18 @@ PrefabInstance:
     - {fileID: 1353063797525529822, guid: 769e0357f80ab0940b717ad26161fb55, type: 3}
     - {fileID: 34025988240586212, guid: 769e0357f80ab0940b717ad26161fb55, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 769e0357f80ab0940b717ad26161fb55, type: 3}
+--- !u!114 &1701270413 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8369869415996924724, guid: 769e0357f80ab0940b717ad26161fb55,
+    type: 3}
+  m_PrefabInstance: {fileID: 872848917}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 867556bcdb872ad49b3db076e9cee872, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &1712366359 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3386750122083608504, guid: 769e0357f80ab0940b717ad26161fb55,
@@ -3029,6 +2895,18 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8369869415996924724, guid: 769e0357f80ab0940b717ad26161fb55,
     type: 3}
   m_PrefabInstance: {fileID: 1915246713}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 867556bcdb872ad49b3db076e9cee872, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1769802259 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8369869415996924724, guid: 769e0357f80ab0940b717ad26161fb55,
+    type: 3}
+  m_PrefabInstance: {fileID: 1788577609}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -3155,6 +3033,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 769e0357f80ab0940b717ad26161fb55, type: 3}
+--- !u!114 &1792841293 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8369869415996924724, guid: 769e0357f80ab0940b717ad26161fb55,
+    type: 3}
+  m_PrefabInstance: {fileID: 1348718053}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 867556bcdb872ad49b3db076e9cee872, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1793892849
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -2,93 +2,159 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+using Random = System.Random;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] private GameObject cardReference;
-    [SerializeField] private List<Sprite> seamsReference;
-    [SerializeField] private List<Sprite> valuesReference;
-
-    [SerializeField] private Deck deck;
+    [SerializeField] private AssetReference cardReference;
+    [SerializeField] private List<AssetReferenceSprite> seamsReference;
+    [SerializeField] private List<AssetReferenceSprite> valuesReference;
 
     [SerializeField] private StackController deckStack;
     [SerializeField] private StackController spawnStack;
     [SerializeField] private List<StackController> bottomStacks;
     [SerializeField] private List<StackController> finalStacks;
 
-    private float yOffset = 45f;
-    private float zOffset = 5f;
-    
+    private float yLocalOffset = 45f;
+    private float zLocalOffset = 5f;
+
+    private static readonly string[] seams = { "hearts", "diamonds", "clubs", "spades" };
+    private static readonly string[] colors = { "red", "black" };
+    private static readonly int[] values = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+
     private void Start()
     {
         //create deck and shuffle the element of the list
-        deck = new Deck();
         NewTable();
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.R))
+        if (Input.GetKeyDown(KeyCode.F))
         {
-            NewTable();
+            deckStack.cardList[0].SetCovered(false);
         }
     }
 
     private void NewTable()
     {
-        deck.ShuffleDeck();
+        StartCoroutine(NewCardDeck());
+        StartCoroutine(ServeCard());
 
-        SpawnAllCard();
-
-        ServeCard();
     }
 
-    private void SpawnAllCard()
+    private IEnumerator NewCardDeck()
     {
-
-        for (int i = 0; i < deck.cards.Count; i++)
+        for (int i = 0; i < 4; i++)
         {
-            Card card = deck.cards[i];
+            for (int j = 0; j < 13; j++)
+            {
+                //create a new card
+                Card newCard = new Card(values[j], seams[i], colors[i / 2]);
 
-            int seamIndex = Array.IndexOf(CardArrays.seams, card.seam);
-            int valueIndex = Array.IndexOf(CardArrays.values, card.value);
+                //get the index of the sprites
+                int seamIndex = Array.IndexOf(seams, newCard.seam);
+                int valueIndex = Array.IndexOf(values, newCard.value);
 
-            //get sprite reference from card properties
-            Sprite seamSprite = seamsReference[seamIndex];
-            Sprite valueSprite = valuesReference[valueIndex];
+                //load new card seam's sprite
+                AsyncOperationHandle<Sprite> handleSprite = seamsReference[seamIndex].LoadAssetAsync<Sprite>();
+                yield return handleSprite;
+                Sprite seamSprite = handleSprite.Result;
 
-            GameObject newCardGameObject = Instantiate(cardReference, deckStack.transform, false);
+                //load new card value's sprite
+                handleSprite = valuesReference[valueIndex].LoadAssetAsync<Sprite>();
+                yield return handleSprite;
+                Sprite valueSprite = handleSprite.Result;
 
-            newCardGameObject.name = card.value + card.seam;
+                //load new card prefab
+                AsyncOperationHandle<GameObject> handleGameObject = cardReference.LoadAssetAsync<GameObject>();
+                yield return handleGameObject;
+                GameObject newCardPrefab = handleGameObject.Result;
 
-            deckStack.cardList.Add(newCardGameObject);
+                //instantiate new card GameObject
+                GameObject newCardGameObject = Instantiate(newCardPrefab, deckStack.transform, false);
 
-            //get cardController from newCard and set the sprites
-            CardController newCardController = newCardGameObject.GetComponent<CardController>();
+                //change GameObject name
+                newCardGameObject.name = newCard.value + newCard.seam;
 
-            newCardController.InitializeSprites(seamSprite, valueSprite);
+                //get gameObject CardController component and set new card sprites
+                CardController newCardController = newCardGameObject.GetComponent<CardController>();
+                newCardController.InitializeSprites(seamSprite, valueSprite);
+
+                //TODO TEMP IF COLLIDER FIXED
+                deckStack.cardList.Add(newCardController);
+            }
+        }
+
+        //randomize the order of the list
+        ShuffleDeck();
+
+    }
+
+    private void ShuffleDeck()
+    {
+        //cards = cards.OrderBy(card => Guid.NewGuid()).ToList();
+
+        Random rng = new Random();
+
+        int n = deckStack.cardList.Count;
+
+        while (n > 1)
+        {
+            n--;
+            int k = rng.Next(n + 1);
+            CardController shuffledCard = deckStack.cardList[k];
+            deckStack.cardList[k] = deckStack.cardList[n];
+            deckStack.cardList[n] = shuffledCard;
         }
     }
 
-    private void ServeCard()
+    private IEnumerator ServeCard()
     {
+        //wait until all card GameObject are instantiated
+        yield return new WaitWhile(() => deckStack.cardList.Count < 52);
+
+        //serve progressively the card on the table
         for (int i = 0; i < bottomStacks.Count; i++)
         {
-            for (int j = i; j < bottomStacks.Count; j++)
+            for (int j = 0; j < i + 1; j++)
             {
-                float currentYOffset = yOffset * i;
-                float currentZOffset = zOffset * i;
+                //set the y and z offset for the current card to serve on table
+                float currentYLocalOffset = yLocalOffset * j;
+                float currentZLocalOffset = zLocalOffset * j;
 
-                GameObject cardGameObject = deckStack.cardList[j];
-                deckStack.cardList.RemoveAt(j);
+                //get the current card to serve on table
+                CardController cardController = deckStack.cardList[j];
+                GameObject cardGameObject = cardController.gameObject;
+                
+                //TODO TEMP IF COLLIDER FIXED
+                deckStack.cardList.Remove(cardController);
 
-                bottomStacks[j].cardList.Add(cardGameObject);
+                //set the new parent for the current card to serve on table
+                cardGameObject.transform.SetParent(bottomStacks[i].transform);
+                
+                //set the sorting order to render properly the card
+                cardGameObject.GetComponent<Canvas>().sortingOrder = (int)currentZLocalOffset;
 
-                cardGameObject.transform.SetParent(bottomStacks[j].transform,false);
-                Vector3 newPosition = cardGameObject.transform.localPosition - new Vector3(0, currentYOffset, currentZOffset);
-                cardGameObject.transform.localPosition = newPosition;
+                //calculate the offset in world coordinates
+                Vector3 offsetVector = bottomStacks[i].transform.TransformVector(0, currentYLocalOffset, currentZLocalOffset);
 
-                cardGameObject.GetComponent<Canvas>().sortingOrder = (int) currentZOffset;
+                //set the new position of the card
+                Vector3 newPosition = bottomStacks[i].transform.position - offsetVector;
+
+                //TODO REPLACE WITH ANIMATION
+                //move the card to the new position
+                float elapsedTime = 0f;
+
+                while (elapsedTime < 0.2)
+                {
+                    cardGameObject.transform.position = Vector3.Lerp(cardGameObject.transform.position, newPosition, elapsedTime);
+                    elapsedTime += Time.deltaTime;
+
+                    yield return new WaitForEndOfFrame();
+                }
             }
         }
     }
