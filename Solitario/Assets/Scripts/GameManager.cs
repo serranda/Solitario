@@ -67,9 +67,7 @@ public class GameManager : MonoBehaviour
             CardController newCardController = newCardGameObject.GetComponent<CardController>();
 
             newCardController.InitializeSprites(seamSprite, valueSprite);
-            newCardController.SetParentStack(deckStack);
         }
-
     }
 
     private void ServeCard()
@@ -91,8 +89,6 @@ public class GameManager : MonoBehaviour
                 cardGameObject.transform.localPosition = newPosition;
 
                 cardGameObject.GetComponent<Canvas>().sortingOrder = (int) currentZOffset;
-                cardGameObject.GetComponent<CardController>().SetParentStack(bottomStacks[j]);
-
             }
         }
     }

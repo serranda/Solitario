@@ -13,10 +13,12 @@ public class CardController : MonoBehaviour
     [SerializeField] private Image topSeam;
     [SerializeField] private Image mainSeam;
     [SerializeField] private Image value;
+
+    public StackController parentStack;
+    public StackController newParentStack;
+
     private Canvas overrideCanvas;
     private int sortingOrder;
-
-    [SerializeField] private StackController parentStack;
 
     private void Awake()
     {
@@ -25,20 +27,7 @@ public class CardController : MonoBehaviour
 
     private void Start()
     {
-        SetCovered(true);
-    }
-
-    private void Update()
-    {
-        if (parentStack.name != "DeckStack" &&
-            parentStack.cardList.IndexOf(gameObject) == parentStack.cardList.Count - 1)
-        {
-            SetCovered(false);
-        }
-        else
-        {
-            SetCovered(true);
-        }
+        SetCovered(false);
     }
 
     private void OnMouseUp()
@@ -53,15 +42,11 @@ public class CardController : MonoBehaviour
 
     private void OnMouseDrag()
     {
+        SetCovered(false);
         overrideCanvas.sortingOrder = 60;
         Vector3 newPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         newPosition.z = transform.position.z;
         transform.position = newPosition;
-    }
-
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        Debug.Log(other.name);
     }
 
     public void InitializeSprites(Sprite seamSprite, Sprite valueSprite)
@@ -75,14 +60,40 @@ public class CardController : MonoBehaviour
         value.color = seamSprite.name == "diamonds" || seamSprite.name == "hearts" ? Color.red : Color.black;
     }
 
-    public void SetCovered(bool covered)
+    //private void CheckCover()
+    //{
+    //    if (parentStack.name != "DeckStack" &&
+    //        parentStack.cardList.IndexOf(gameObject) == parentStack.cardList.Count - 1)
+    //    {
+    //        SetCovered(false);
+    //    }
+    //    else
+    //    {
+    //        SetCovered(true);
+    //    }
+    //}
+
+    private void SetCovered(bool covered)
     {
         backCover.enabled = covered;
     }
 
-    public void SetParentStack(StackController stackController)
-    {
-        parentStack = stackController;
-    }
+    //public void CheckParentStack()
+    //{
+    //    if (parentStack != newParentStack)
+    //    {
+    //        Debug.Log("CHECK");
+    //        SetParentStack();
+    //    }
+    //}
+
+    //private void SetParentStack()
+    //{
+    //    parentStack.cardList.Remove(gameObject);
+
+    //    //set the new parent stack and add the card to its list
+    //    parentStack = newParentStack;
+    //    parentStack.cardList.Add(gameObject);
+    //}
 
 }

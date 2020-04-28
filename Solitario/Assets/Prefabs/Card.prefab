@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 3386750122083608504}
   - component: {fileID: 6225846490542946964}
   - component: {fileID: 34025988240586212}
+  - component: {fileID: 868925436303785845}
   - component: {fileID: 6298222714015880301}
   - component: {fileID: 1797879234605108447}
   - component: {fileID: 5655688785075796407}
@@ -81,6 +82,27 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!50 &868925436303785845
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 22781414874328153}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!61 &6298222714015880301
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -123,7 +145,6 @@ MonoBehaviour:
   topSeam: {fileID: 1231500832408865189}
   mainSeam: {fileID: 4733081471898278151}
   value: {fileID: 2351789565768946875}
-  overrideCanvas: {fileID: 5655688785075796407}
   parentStack: {fileID: 0}
 --- !u!223 &5655688785075796407
 Canvas:

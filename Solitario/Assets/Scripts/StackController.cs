@@ -7,9 +7,6 @@ public class StackController : MonoBehaviour
 {
     public List<GameObject> cardList;
 
-
-    [SerializeField] private bool finalStack;
-
     private BoxCollider2D boxCollider2D;
 
 
@@ -27,6 +24,29 @@ public class StackController : MonoBehaviour
 
             boxCollider2D.size = newSize;
             boxCollider2D.offset = newOffset;
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        CardController cardController = other.GetComponent<CardController>();
+
+        if (cardController)
+        {
+            //Set the new parent stack
+            cardList.Add(cardController.gameObject);
+            cardController.parentStack = this;
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        CardController cardController = other.GetComponent<CardController>();
+
+        if (cardController)
+        {
+            //Set the new parent stack
+            cardList.Remove(cardController.gameObject);
         }
     }
 }
