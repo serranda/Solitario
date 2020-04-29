@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.UI;
 using Random = System.Random;
 
 public class GameManager : MonoBehaviour
@@ -17,8 +18,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<StackController> bottomStacks;
     [SerializeField] private List<StackController> finalStacks;
 
-    private float yLocalOffset = 45f;
-    private float zLocalOffset = 5f;
+    [SerializeField] private Button deckButton;
+
+    [SerializeField] private float waitTimeForServe;
+
+    public static readonly float yLocalOffset = 45f;
+    public static readonly float zLocalOffset = 5f;
 
     private static readonly string[] seams = { "hearts", "diamonds", "clubs", "spades" };
     private static readonly string[] colors = { "red", "black" };
@@ -32,10 +37,10 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            deckStack.cardList[0].SetCovered(false);
-        }
+        //if (Input.GetKeyDown(KeyCode.F))
+        //{
+        //    deckStack.cardList[0].SetCovered(false);
+        //}
     }
 
     private void NewTable()
@@ -74,7 +79,7 @@ public class GameManager : MonoBehaviour
                 GameObject newCardPrefab = handleGameObject.Result;
 
                 //instantiate new card GameObject
-                GameObject newCardGameObject = Instantiate(newCardPrefab, deckStack.transform, false);
+                GameObject newCardGameObject = Instantiate(newCardPrefab, deckButton.transform, false);
 
                 //change GameObject name
                 newCardGameObject.name = newCard.value + newCard.seam;
@@ -83,6 +88,8 @@ public class GameManager : MonoBehaviour
                 CardController newCardController = newCardGameObject.GetComponent<CardController>();
                 newCardController.InitializeSprites(seamSprite, valueSprite);
 
+                //set crad on newCardController
+                newCardController.card = newCard;
                 //TODO TEMP IF COLLIDER FIXED
                 deckStack.cardList.Add(newCardController);
             }
@@ -122,8 +129,8 @@ public class GameManager : MonoBehaviour
             for (int j = 0; j < i + 1; j++)
             {
                 //set the y and z offset for the current card to serve on table
-                float currentYLocalOffset = yLocalOffset * j;
-                float currentZLocalOffset = zLocalOffset * j;
+                float currentYLocalOffset = yLocalOffset * (j + 1);
+                float currentZLocalOffset = zLocalOffset * (j + 1);
 
                 //get the current card to serve on table
                 CardController cardController = deckStack.cardList[j];
@@ -145,16 +152,9 @@ public class GameManager : MonoBehaviour
                 Vector3 newPosition = bottomStacks[i].transform.position - offsetVector;
 
                 //TODO REPLACE WITH ANIMATION
-                //move the card to the new position
-                float elapsedTime = 0f;
+                cardController.MoveToPosition(newPosition);
 
-                while (elapsedTime < 0.2)
-                {
-                    cardGameObject.transform.position = Vector3.Lerp(cardGameObject.transform.position, newPosition, elapsedTime);
-                    elapsedTime += Time.deltaTime;
-
-                    yield return new WaitForEndOfFrame();
-                }
+                yield return new WaitForSeconds(waitTimeForServe);
             }
         }
     }
