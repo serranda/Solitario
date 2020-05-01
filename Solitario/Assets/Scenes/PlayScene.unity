@@ -185,7 +185,12 @@ MonoBehaviour:
   - {fileID: 1792841293}
   - {fileID: 1110041026}
   deck: []
+  SpawnPlaceHolder: {fileID: 1778953934}
   deckButton: {fileID: 757953460}
+  deckButtonNormalSprite: {fileID: 21300000, guid: 03c1d50aac016c541a824c8fcefd9ac6,
+    type: 3}
+  deckButtonEmptySprite: {fileID: 21300000, guid: 655bf8a241681664da2acae137cfae65,
+    type: 3}
   waitTimeForServe: 0.1
 --- !u!4 &4443040
 Transform:
@@ -756,7 +761,7 @@ MonoBehaviour:
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
-  m_Transition: 0
+  m_Transition: 2
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
@@ -769,7 +774,7 @@ MonoBehaviour:
     m_HighlightedSprite: {fileID: 0}
     m_PressedSprite: {fileID: 0}
     m_SelectedSprite: {fileID: 0}
-    m_DisabledSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 21300000, guid: 655bf8a241681664da2acae137cfae65, type: 3}
   m_AnimationTriggers:
     m_NormalTrigger: Normal
     m_HighlightedTrigger: Highlighted
@@ -780,7 +785,18 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 757953461}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 4443039}
+        m_MethodName: SpawnCard
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &757953461
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1008,7 +1024,7 @@ PrefabInstance:
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
       propertyPath: m_Size.x
-      value: 60
+      value: 109
       objectReference: {fileID: 0}
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
@@ -1018,7 +1034,7 @@ PrefabInstance:
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
       propertyPath: m_Offset.y
-      value: -418
+      value: -500
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 1353063797525529822, guid: 769e0357f80ab0940b717ad26161fb55, type: 3}
@@ -1366,7 +1382,7 @@ PrefabInstance:
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
       propertyPath: m_Size.x
-      value: 60
+      value: 109
       objectReference: {fileID: 0}
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
@@ -1840,7 +1856,7 @@ PrefabInstance:
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
       propertyPath: m_Size.x
-      value: 60
+      value: 109
       objectReference: {fileID: 0}
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
@@ -1850,7 +1866,7 @@ PrefabInstance:
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
       propertyPath: m_Offset.y
-      value: -418
+      value: -500
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 1353063797525529822, guid: 769e0357f80ab0940b717ad26161fb55, type: 3}
@@ -1991,7 +2007,7 @@ PrefabInstance:
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
       propertyPath: m_Size.x
-      value: 60
+      value: 109
       objectReference: {fileID: 0}
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
@@ -2001,7 +2017,7 @@ PrefabInstance:
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
       propertyPath: m_Offset.y
-      value: -418
+      value: -500
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 1353063797525529822, guid: 769e0357f80ab0940b717ad26161fb55, type: 3}
@@ -2469,7 +2485,7 @@ PrefabInstance:
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
       propertyPath: m_Size.x
-      value: 60
+      value: 109
       objectReference: {fileID: 0}
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
@@ -2479,7 +2495,7 @@ PrefabInstance:
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
       propertyPath: m_Offset.y
-      value: -418
+      value: -500
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 1353063797525529822, guid: 769e0357f80ab0940b717ad26161fb55, type: 3}
@@ -2844,7 +2860,7 @@ PrefabInstance:
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
       propertyPath: m_Size.x
-      value: 60
+      value: 109
       objectReference: {fileID: 0}
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
@@ -2854,7 +2870,7 @@ PrefabInstance:
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
       propertyPath: m_Offset.y
-      value: -418
+      value: -500
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 1353063797525529822, guid: 769e0357f80ab0940b717ad26161fb55, type: 3}
@@ -2995,7 +3011,7 @@ PrefabInstance:
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
       propertyPath: m_Size.x
-      value: 60
+      value: 109
       objectReference: {fileID: 0}
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
@@ -3005,7 +3021,7 @@ PrefabInstance:
     - target: {fileID: 3423602390439983800, guid: 769e0357f80ab0940b717ad26161fb55,
         type: 3}
       propertyPath: m_Offset.y
-      value: -418
+      value: -500
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 1353063797525529822, guid: 769e0357f80ab0940b717ad26161fb55, type: 3}

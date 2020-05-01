@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -17,11 +18,17 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<StackController> finalStacks;
 
     [SerializeField] private List<CardController> deck;
+    [SerializeField] private Transform SpawnPlaceHolder;
 
     [SerializeField] private Button deckButton;
+    [SerializeField] private Sprite deckButtonNormalSprite;
+    [SerializeField] private Sprite deckButtonEmptySprite;
 
     [SerializeField] private float waitTimeForServe;
 
+    private int nextCard;
+
+    public static readonly float xLocalOffset = 45f;
     public static readonly float yLocalOffset = 45f;
     public static readonly float zLocalOffset = 5f;
 
@@ -91,6 +98,9 @@ public class GameManager : MonoBehaviour
                 //set crad on newCardController
                 newCardController.card = newCard;
 
+                //disable card box collider
+                newCardController.SetIsMovable(false);
+
                 //add card to deck to keep track which is the next to serve
                 deck.Add(newCardController);
             }
@@ -98,7 +108,6 @@ public class GameManager : MonoBehaviour
 
         //randomize the order of the list
         ShuffleDeck();
-
     }
 
     private void ShuffleDeck()
@@ -156,10 +165,57 @@ public class GameManager : MonoBehaviour
                 if (j == i)
                 {
                     cardController.SetIsCovered(false);
+                    cardController.SetIsMovable(true);
                 }
 
                 yield return new WaitForSeconds(waitTimeForServe);
             }
         }
+    }
+
+    public void SpawnCard()
+    {
+        if (nextCard == -1)
+        {
+            //clear the SpawnPlaceHolder
+
+            deckButton.image.sprite = deckButtonNormalSprite;
+        }
+        else
+        {
+            //set the y and z offset for the current card to serve on table
+            float currentXLocalOffset = xLocalOffset * SpawnPlaceHolder.childCount;
+            float currentZLocalOffset = zLocalOffset * (SpawnPlaceHolder.childCount + 1);
+
+            //get the current card to serve on table
+            CardController cardController = deck[nextCard];
+            GameObject cardGameObject = cardController.gameObject;
+
+            //set the new parent for the current card to serve on table
+            cardGameObject.transform.SetParent(SpawnPlaceHolder);
+
+            //calculate the offset in world coordinates
+            Vector3 offsetVector = SpawnPlaceHolder.TransformVector(currentXLocalOffset, 0, currentZLocalOffset);
+
+            //set the new position of the card
+            Vector3 newPosition = SpawnPlaceHolder.position - offsetVector;
+
+            //set flag to make card discovered if is last of the list
+            cardController.SetIsCovered(false);
+            cardController.SetIsMovable(true);
+
+            //coroutine to move gradually card to new position
+            cardController.MoveToPosition(newPosition, (int)currentZLocalOffset);
+        }
+
+        nextCard++;
+
+        if (nextCard == deck.Count)
+        {
+            nextCard = -1;
+
+            deckButton.image.sprite = deckButtonEmptySprite;
+        }
+
     }
 }
