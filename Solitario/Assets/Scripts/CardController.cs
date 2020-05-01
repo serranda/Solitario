@@ -7,7 +7,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using Vector3 = UnityEngine.Vector3;
 
-
+[RequireComponent(typeof(Animator), 
+    typeof(Canvas), 
+    typeof(BoxCollider2D))]
 public class CardController : MonoBehaviour
 {
     private readonly int sortingOrderOnClick = 100;
@@ -20,13 +22,15 @@ public class CardController : MonoBehaviour
     private Animator animator;
 
     private Canvas overrideCanvas;
-    private int sortingOrder;
+    public int sortingOrder;
 
     private BoxCollider2D boxCollider;
 
     private Vector3 startingPosition;
 
     public StackController parentStack;
+
+    public bool fromSpawn;
 
     public Card card;
 
@@ -50,45 +54,45 @@ public class CardController : MonoBehaviour
         Vector3 newPosition = startingPosition;
         int newSortingOrder = sortingOrder;
         //set transform of parenStack
-        Transform parentTransform = parentStack.transform;
-        string parentType = parentTransform.parent.name;
+        Transform newParentTransform = parentStack.transform;
+        string newParentType = newParentTransform.parent.name;
 
-        Debug.Log(parentType);
+        Debug.Log(newParentType);
 
         //the stack has no child
         if (parentStack.transform.childCount == 0)
         {
-            if (parentType == "BottomStacks" && card.value == 13)
+            if (newParentType == "BottomStacks" && card.value == 13)
             {
                 //card is a king and can be move in the empty stack
-                gameObject.transform.SetParent(parentTransform);
+                gameObject.transform.SetParent(newParentTransform);
 
                 //set the y and z offset for the current card to serve on table
-                float currentZLocalOffset = GameManager.zLocalOffset;
+                float currentZLocalOffset = GameManager.Instance.zLocalOffset;
 
                 //calculate the offset in world coordinates
-                Vector3 offsetVector = parentTransform.TransformVector(0, 0, currentZLocalOffset);
+                Vector3 offsetVector = newParentTransform.TransformVector(0, 0, currentZLocalOffset);
 
                 //set the new position of the card
-                newPosition = parentTransform.position - offsetVector;
+                newPosition = newParentTransform.position - offsetVector;
 
                 //set new sorting order of the card
                 newSortingOrder = (int)currentZLocalOffset;
             }
-            else if (parentType == "FinalStacks" && card.value == 1 &&
+            else if (newParentType == "FinalStacks" && card.value == 1 &&
                      parentStack.name.IndexOf(card.seam, StringComparison.InvariantCultureIgnoreCase) != -1)
             {
                 //card can be moved to the final stacks, set parent and newPosition
-                gameObject.transform.SetParent(parentTransform);
+                gameObject.transform.SetParent(newParentTransform);
 
                 //set the z offset for the current card to serve on table
-                float currentZLocalOffset = GameManager.zLocalOffset;
+                float currentZLocalOffset = GameManager.Instance.zLocalOffset;
 
                 //calculate the offset in world coordinates
-                Vector3 offsetVector = parentTransform.TransformVector(0, 0, currentZLocalOffset);
+                Vector3 offsetVector = newParentTransform.TransformVector(0, 0, currentZLocalOffset);
 
                 //set the new position of the card
-                newPosition = parentTransform.position - offsetVector;
+                newPosition = newParentTransform.position - offsetVector;
 
                 //set new sorting order of the card
                 newSortingOrder = (int)currentZLocalOffset;
@@ -111,46 +115,46 @@ public class CardController : MonoBehaviour
             Debug.LogFormat("LAST CARD: {0} ", lastCard);
             Debug.LogFormat("THIS CARD: {0} ", card);
 
-            if (parentType == "BottomStacks" && card.value == lastCard.value - 1 && card.color != lastCard.color)
+            if (newParentType == "BottomStacks" && card.value == lastCard.value - 1 && card.color != lastCard.color)
             {
                 //the card actually has as  parent the last card of the stack
-                parentTransform = lastCardController.transform;
+                newParentTransform = lastCardController.transform;
 
-                Debug.Log(parentTransform.GetChild(parentTransform.childCount-1).GetComponent<CardController>());
+                Debug.Log(newParentTransform.GetChild(newParentTransform.childCount - 1).GetComponent<CardController>());
 
                 //CHECK IF THE CARD HAS ALREADY A CHILD CARD, IF YES DON'T MOVE THE CARD
-                if (!parentTransform.GetChild(parentTransform.childCount - 1).GetComponent<CardController>())
+                if (!newParentTransform.GetChild(newParentTransform.childCount - 1).GetComponent<CardController>())
                 {
                     //card can be moved to the current bottom stacks, set parent 
-                    gameObject.transform.SetParent(parentTransform);
+                    gameObject.transform.SetParent(newParentTransform);
 
                     //set the y and z offset for the current card to serve on table
-                    float currentYLocalOffset = GameManager.yLocalOffset;
-                    float currentZLocalOffset = GameManager.zLocalOffset;
+                    float currentYLocalOffset = GameManager.Instance.yLocalOffset * 2;
+                    float currentZLocalOffset = GameManager.Instance.zLocalOffset;
 
                     //calculate the offset in world coordinates
-                    Vector3 offsetVector = parentTransform.TransformVector(0, currentYLocalOffset, currentZLocalOffset);
+                    Vector3 offsetVector = newParentTransform.TransformVector(0, currentYLocalOffset, currentZLocalOffset);
 
                     //set the new position of the card
-                    newPosition = parentTransform.position - offsetVector;
+                    newPosition = newParentTransform.position - offsetVector;
 
                     //set new sorting order of the card
-                    newSortingOrder = (int) currentZLocalOffset;
+                    newSortingOrder = lastCardController.overrideCanvas.sortingOrder + (int) currentZLocalOffset;
                 }
             }
-            else if (parentType == "FinalStacks" && card.value == lastCard.value + 1 && card.seam == lastCard.seam)
+            else if (newParentType == "FinalStacks" && card.value == lastCard.value + 1 && card.seam == lastCard.seam)
             {
                 //card can be moved to the final stacks, set parent and newPosition
-                gameObject.transform.SetParent(parentTransform);
+                gameObject.transform.SetParent(newParentTransform);
 
                 //set the z offset for the current card to serve on table
-                float currentZLocalOffset = GameManager.zLocalOffset * (parentStackLastIndex + 2);
+                float currentZLocalOffset = GameManager.Instance.zLocalOffset * (parentStackLastIndex + 2);
 
                 //calculate the offset in world coordinates
-                Vector3 offsetVector = parentTransform.TransformVector(0, 0, currentZLocalOffset);
+                Vector3 offsetVector = newParentTransform.TransformVector(0, 0, currentZLocalOffset);
 
                 //set the new position of the card
-                newPosition = parentTransform.position - offsetVector;
+                newPosition = newParentTransform.position - offsetVector;
 
                 //set new sorting order of the card
                 newSortingOrder = (int)currentZLocalOffset;
@@ -225,10 +229,9 @@ public class CardController : MonoBehaviour
     }
 
     private IEnumerator MoveToPositionCoroutine(Vector3 newPosition, int sortOrder)
-    {
-
+    {        
         //restore the correct sorting order
-        overrideCanvas.sortingOrder = sortOrder;
+        overrideCanvas.sortingOrder = sortingOrder = sortOrder;
 
         float startTime = 0;
 
@@ -240,10 +243,19 @@ public class CardController : MonoBehaviour
         {
             transform.position = Vector3.Lerp(transform.position, newPosition, startTime);
 
-            startTime += Time.fixedDeltaTime;
+            if (transform.position == newPosition)
+            {
+                break;
+                Debug.Log("TEST1");
+            }
+
+            startTime += Time.deltaTime;
 
             yield return null;
         }
+        Debug.Log("TEST2");
+
+
 
     }
 }

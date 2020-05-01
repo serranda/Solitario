@@ -8,7 +8,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UI;
 using Random = System.Random;
 
-public class GameManager : MonoBehaviour
+public class GameManager : Singleton<GameManager>
 {
     [SerializeField] private AssetReference cardReference;
     [SerializeField] private List<AssetReferenceSprite> seamsReference;
@@ -18,7 +18,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<StackController> finalStacks;
 
     [SerializeField] private List<CardController> deck;
-    [SerializeField] private Transform SpawnPlaceHolder;
 
     [SerializeField] private Button deckButton;
     [SerializeField] private Sprite deckButtonNormalSprite;
@@ -28,13 +27,13 @@ public class GameManager : MonoBehaviour
 
     private int nextCard;
 
-    public static readonly float xLocalOffset = 45f;
-    public static readonly float yLocalOffset = 45f;
-    public static readonly float zLocalOffset = 5f;
+    public readonly float xLocalOffset = 55f;
+    public readonly float yLocalOffset = 25f;
+    public readonly float zLocalOffset = 5f;
 
-    private static readonly string[] seams = { "hearts", "diamonds", "clubs", "spades" };
-    private static readonly string[] colors = { "red", "black" };
-    private static readonly int[] values = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+    private readonly string[] seams = { "hearts", "diamonds", "clubs", "spades" };
+    private readonly string[] colors = { "red", "black" };
+    private readonly int[] values = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
 
     private void Start()
     {
@@ -54,7 +53,6 @@ public class GameManager : MonoBehaviour
     {
         StartCoroutine(NewCardDeck());
         StartCoroutine(ServeCard());
-
     }
 
     private IEnumerator NewCardDeck()
@@ -177,35 +175,42 @@ public class GameManager : MonoBehaviour
     {
         if (nextCard == -1)
         {
-            //clear the SpawnPlaceHolder
-
+            SpawnPlaceController.Instance.RemoveAllChild(deckButton.transform);
             deckButton.image.sprite = deckButtonNormalSprite;
         }
         else
         {
-            //set the y and z offset for the current card to serve on table
-            float currentXLocalOffset = xLocalOffset * SpawnPlaceHolder.childCount;
-            float currentZLocalOffset = zLocalOffset * (SpawnPlaceHolder.childCount + 1);
+            Transform spawnPlaceTransform = SpawnPlaceController.Instance.spawnPlaceHolder.transform;
+
+            ////set the  z offset for the current card to serve on table
+            float currentZLocalOffset = zLocalOffset * spawnPlaceTransform.childCount;
 
             //get the current card to serve on table
             CardController cardController = deck[nextCard];
             GameObject cardGameObject = cardController.gameObject;
 
             //set the new parent for the current card to serve on table
-            cardGameObject.transform.SetParent(SpawnPlaceHolder);
+            cardGameObject.transform.SetParent(spawnPlaceTransform);
+
+            //add card to list
+            SpawnPlaceController.Instance.spawnedCard.Add(cardController);
+
+            SpawnPlaceController.Instance.AdjustChildPosition();
 
             //calculate the offset in world coordinates
-            Vector3 offsetVector = SpawnPlaceHolder.TransformVector(currentXLocalOffset, 0, currentZLocalOffset);
+            Vector3 offsetVector = spawnPlaceTransform.TransformVector(-SpawnPlaceController.Instance.boxCollider2D.offset.x, -SpawnPlaceController.Instance.boxCollider2D.offset.y, currentZLocalOffset);
 
             //set the new position of the card
-            Vector3 newPosition = SpawnPlaceHolder.position - offsetVector;
+            Vector3 newPosition = spawnPlaceTransform.position - offsetVector;
+
+            //coroutine to move gradually card to new position
+            cardController.MoveToPosition(newPosition, (int) currentZLocalOffset);
 
             //set flag to make card discovered if is last of the list
             cardController.SetIsCovered(false);
             cardController.SetIsMovable(true);
 
-            //coroutine to move gradually card to new position
-            cardController.MoveToPosition(newPosition, (int)currentZLocalOffset);
+
         }
 
         nextCard++;

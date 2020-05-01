@@ -88,8 +88,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 867556bcdb872ad49b3db076e9cee872, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardList: []
-  finalStack: 0
 --- !u!61 &3423602390439983800
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -114,5 +112,5 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 109, y: 164}
+  m_Size: {x: 100, y: 150}
   m_EdgeRadius: 0
