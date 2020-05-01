@@ -13,10 +13,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<AssetReferenceSprite> seamsReference;
     [SerializeField] private List<AssetReferenceSprite> valuesReference;
 
-    [SerializeField] private StackController deckStack;
-    [SerializeField] private StackController spawnStack;
     [SerializeField] private List<StackController> bottomStacks;
     [SerializeField] private List<StackController> finalStacks;
+
+    [SerializeField] private List<CardController> deck;
 
     [SerializeField] private Button deckButton;
 
@@ -90,8 +90,9 @@ public class GameManager : MonoBehaviour
 
                 //set crad on newCardController
                 newCardController.card = newCard;
-                //TODO TEMP IF COLLIDER FIXED
-                deckStack.cardList.Add(newCardController);
+
+                //add card to deck to keep track which is the next to serve
+                deck.Add(newCardController);
             }
         }
 
@@ -106,22 +107,22 @@ public class GameManager : MonoBehaviour
 
         Random rng = new Random();
 
-        int n = deckStack.cardList.Count;
+        int n = deck.Count;
 
         while (n > 1)
         {
             n--;
             int k = rng.Next(n + 1);
-            CardController shuffledCard = deckStack.cardList[k];
-            deckStack.cardList[k] = deckStack.cardList[n];
-            deckStack.cardList[n] = shuffledCard;
+            CardController shuffledCard = deck[k];
+            deck[k] = deck[n];
+            deck[n] = shuffledCard;
         }
     }
 
     private IEnumerator ServeCard()
     {
         //wait until all card GameObject are instantiated
-        yield return new WaitWhile(() => deckStack.cardList.Count < 52);
+        yield return new WaitWhile(() => deck.Count < 52);
 
         //serve progressively the card on the table
         for (int i = 0; i < bottomStacks.Count; i++)
@@ -129,21 +130,18 @@ public class GameManager : MonoBehaviour
             for (int j = 0; j < i + 1; j++)
             {
                 //set the y and z offset for the current card to serve on table
-                float currentYLocalOffset = yLocalOffset * (j + 1);
+                float currentYLocalOffset = yLocalOffset * j;
                 float currentZLocalOffset = zLocalOffset * (j + 1);
 
                 //get the current card to serve on table
-                CardController cardController = deckStack.cardList[j];
+                CardController cardController = deck[j];
                 GameObject cardGameObject = cardController.gameObject;
-                
-                //TODO TEMP IF COLLIDER FIXED
-                deckStack.cardList.Remove(cardController);
+
+                //Remove served card form deck
+                deck.Remove(cardController);
 
                 //set the new parent for the current card to serve on table
                 cardGameObject.transform.SetParent(bottomStacks[i].transform);
-                
-                //set the sorting order to render properly the card
-                cardGameObject.GetComponent<Canvas>().sortingOrder = (int)currentZLocalOffset;
 
                 //calculate the offset in world coordinates
                 Vector3 offsetVector = bottomStacks[i].transform.TransformVector(0, currentYLocalOffset, currentZLocalOffset);
@@ -151,8 +149,14 @@ public class GameManager : MonoBehaviour
                 //set the new position of the card
                 Vector3 newPosition = bottomStacks[i].transform.position - offsetVector;
 
-                //TODO REPLACE WITH ANIMATION
-                cardController.MoveToPosition(newPosition);
+                //coroutine to move gradually card to new position
+                cardController.MoveToPosition(newPosition, (int)currentZLocalOffset);
+
+                //set flag to make card discovered if is last of the list
+                if (j == i)
+                {
+                    cardController.SetIsCovered(false);
+                }
 
                 yield return new WaitForSeconds(waitTimeForServe);
             }

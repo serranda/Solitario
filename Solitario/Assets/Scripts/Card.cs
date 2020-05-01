@@ -17,4 +17,9 @@ public class Card
         this.seam = seam;
         this.color = color;
     }
+
+    public override string ToString()
+    {
+        return $"{nameof(value)}: {value}, {nameof(seam)}: {seam}, {nameof(color)}: {color}";
+    }
 }

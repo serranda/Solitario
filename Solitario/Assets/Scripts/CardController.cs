@@ -10,10 +10,12 @@ using Vector3 = UnityEngine.Vector3;
 
 public class CardController : MonoBehaviour
 {
+    private readonly int sortingOrderOnClick = 100;
+
     [SerializeField] private Image topSeam;
     [SerializeField] private Image mainSeam;
     [SerializeField] private Image value;
-    [SerializeField] private float movingTime;
+    [SerializeField] private float movingSpeed;
 
     private Animator animator;
 
@@ -22,11 +24,13 @@ public class CardController : MonoBehaviour
 
     private Vector3 startingPosition;
 
+    private bool isCovered;
+
     public StackController parentStack;
 
     public Card card;
 
-    private void Start()
+    private void OnEnable()
     {
         overrideCanvas = GetComponent<Canvas>();
         animator = GetComponent<Animator>();
@@ -34,68 +38,111 @@ public class CardController : MonoBehaviour
 
     private void OnMouseUp()
     {
-        if (parentStack.cardList.IndexOf(this) != parentStack.cardList.Count - 1) return;
-
-        Vector3 newPosition = Vector3.positiveInfinity;
-
-        //TODO HANDLE CASE 0 ELEMENT IN THE STACK
-
-        //get last index of parenStack cardList
-        int parentStackLastIndex = parentStack.cardList.Count - 1;
-
-        
-        //get last card from parentStack
-        Card lastCard = parentStack.cardList[parentStackLastIndex].card;
-
+        Vector3 newPosition = startingPosition;
+        int newSortingOrder = sortingOrder;
         //set transform of parenStack
         Transform parentTransform = parentStack.transform;
-
         string parentType = parentTransform.parent.name;
 
-        if (parentType == "BottomStacks" && card.value == lastCard.value - 1 && card.color != lastCard.color)
+        Debug.Log(parentType);
+
+        //the stack has no child
+        if (parentStack.transform.childCount == 0)
         {
-            //card can be moved to the current bottom stacks, set parent
-            gameObject.transform.SetParent(parentTransform);
+            if (parentType == "BottomStacks" && card.value == 13)
+            {
+                //card is a king and can be move in the empty stack
+                gameObject.transform.SetParent(parentTransform);
 
-            //set the y and z offset for the current card to serve on table
-            float currentYLocalOffset = GameManager.yLocalOffset * parentStackLastIndex;
-            float currentZLocalOffset = GameManager.zLocalOffset * parentStackLastIndex;
+                //set the y and z offset for the current card to serve on table
+                float currentZLocalOffset = GameManager.zLocalOffset;
 
-            //calculate the offset in world coordinates
-            Vector3 offsetVector = parentTransform.TransformVector(0, currentYLocalOffset, currentZLocalOffset);
+                //calculate the offset in world coordinates
+                Vector3 offsetVector = parentTransform.TransformVector(0, 0, currentZLocalOffset);
 
-            //set the new position of the card
-            newPosition = parentTransform.position - offsetVector;
+                //set the new position of the card
+                newPosition = parentTransform.position - offsetVector;
+
+                //set new sorting order of the card
+                newSortingOrder = (int)currentZLocalOffset;
+            }
+            else if (parentType == "FinalStacks" && card.value == 1 &&
+                     parentStack.name.IndexOf(card.seam, StringComparison.InvariantCultureIgnoreCase) != -1)
+            {
+                //card can be moved to the final stacks, set parent and newPosition
+                gameObject.transform.SetParent(parentTransform);
+
+                //set the z offset for the current card to serve on table
+                float currentZLocalOffset = GameManager.zLocalOffset;
+
+                //calculate the offset in world coordinates
+                Vector3 offsetVector = parentTransform.TransformVector(0, 0, currentZLocalOffset);
+
+                //set the new position of the card
+                newPosition = parentTransform.position - offsetVector;
+
+
+                //set new sorting order of the card
+                newSortingOrder = (int)currentZLocalOffset;
+            }
         }
-        else if(parentType == "FinalStacks" && card.value == lastCard.value + 1 && card.seam == lastCard.seam)
-        {
-            //card can be moved to the final stacks, set parent and newPosition
-            gameObject.transform.SetParent(parentTransform);
-
-            //set the new position of the card
-            newPosition = parentTransform.position;
-        }
+        //the stack has child
         else
         {
-            //card can't move, set as newPosition the previous one
-            newPosition = startingPosition;
+            Debug.LogFormat("PARENT NOT EMPTY {0}", parentStack.transform.childCount);
+
+            //get index of previous card from parenStack cardList(the last card is the this one, so we need to take the card before in the list)
+            int parentStackLastIndex = parentStack.transform.childCount - 1;
+
+            CardController lastCardController = parentStack.transform.GetChild(parentStackLastIndex).GetComponent<CardController>();
+            Card lastCard = lastCardController.card;
+
+            Debug.LogFormat("LAST CARD: {0} ", lastCard);
+            Debug.LogFormat("THIS CARD: {0} ", card);
+
+            if (parentType == "BottomStacks" && card.value == lastCard.value - 1 && card.color != lastCard.color)
+            {
+                //card can be moved to the current bottom stacks, set parent
+                gameObject.transform.SetParent(parentTransform);
+
+                //set the y and z offset for the current card to serve on table
+                float currentYLocalOffset = GameManager.yLocalOffset * (parentStackLastIndex + 1);
+                float currentZLocalOffset = GameManager.zLocalOffset * (parentStackLastIndex + 2);
+
+                //calculate the offset in world coordinates
+                Vector3 offsetVector = parentTransform.TransformVector(0, currentYLocalOffset, currentZLocalOffset);
+
+                //set the new position of the card
+                newPosition = parentTransform.position - offsetVector;
+
+                //set new sorting order of the card
+                newSortingOrder = (int)currentZLocalOffset;
+            }
+            else if (parentType == "FinalStacks" && card.value == lastCard.value + 1 && card.seam == lastCard.seam)
+            {
+                //card can be moved to the final stacks, set parent and newPosition
+                gameObject.transform.SetParent(parentTransform);
+
+                //set the z offset for the current card to serve on table
+                float currentZLocalOffset = GameManager.zLocalOffset * (parentStackLastIndex + 2);
+
+                //calculate the offset in world coordinates
+                Vector3 offsetVector = parentTransform.TransformVector(0, 0, currentZLocalOffset);
+
+                //set the new position of the card
+                newPosition = parentTransform.position - offsetVector;
+
+                //set new sorting order of the card
+                newSortingOrder = (int)currentZLocalOffset;
+            }
         }
 
-        if (newPosition != Vector3.positiveInfinity)
-        {
-            //move the card to the newPosition
-            MoveToPosition(newPosition);
-        }
-        else
-        {
-            //card hasn't been moved, but need to set the correct sorting order
-            overrideCanvas.sortingOrder = sortingOrder;
-        }
+        MoveToPosition(newPosition, newSortingOrder);
     }
 
     private void OnMouseDown()
     {
-        if (parentStack.cardList.IndexOf(this) != parentStack.cardList.Count - 1) return;
+        //save the sorting order to restore it later
         sortingOrder = overrideCanvas.sortingOrder;
 
         startingPosition = transform.position;
@@ -104,10 +151,8 @@ public class CardController : MonoBehaviour
 
     private void OnMouseDrag()
     {
-        if (parentStack.cardList.IndexOf(this) != parentStack.cardList.Count - 1) return;
-
         //Set sorting order to prevent render issues
-        overrideCanvas.sortingOrder = 60;
+        overrideCanvas.sortingOrder = sortingOrderOnClick;
 
         //get newPosition from mouse
         Vector3 newPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -130,46 +175,33 @@ public class CardController : MonoBehaviour
         value.color = seamSprite.name == "diamonds" || seamSprite.name == "hearts" ? Color.red : Color.black;
     }
 
-    private void CheckCover()
-    {
-        if (parentStack.name != "DeckStack" &&
-            parentStack.cardList.IndexOf(this) == parentStack.cardList.Count - 1)
-        {
-            SetCovered(false);
-        }
-        else
-        {
-            SetCovered(true);
-        }
-    }
-
-    public void SetCovered(bool covered)
+    public void SetIsCovered(bool covered)
     {
         //backCover.enabled = covered;
         animator.SetBool("covered", covered);
-
     }
 
-    public void MoveToPosition(Vector3 newPosition)
+    public void MoveToPosition(Vector3 newPosition, int sortOrder)
     {
-        StartCoroutine(MoveToPositionCoroutine(newPosition));
+        StartCoroutine(MoveToPositionCoroutine(newPosition, sortOrder));
     }
 
-    private IEnumerator MoveToPositionCoroutine(Vector3 newPosition)
+    private IEnumerator MoveToPositionCoroutine(Vector3 newPosition, int sortOrder)
     {
-        //move the card to the new position
-        float elapsedTime = 0f;
 
-        while (elapsedTime < movingTime)
+        while (transform.position != newPosition)
         {
-            transform.position = Vector3.Lerp(transform.position, newPosition, elapsedTime);
-            elapsedTime += Time.deltaTime;
+            transform.position = Vector3.Lerp(transform.position, newPosition, movingSpeed * Time.deltaTime);
 
-            yield return new WaitForEndOfFrame();
+            //if (transform.position == newPosition)
+            //{
+            //    yield break;
+            //}
+
+            yield return null;
         }
 
-        //set the correct sorting order
-        overrideCanvas.sortingOrder = sortingOrder;
-
+        //restore the correct sorting order
+        overrideCanvas.sortingOrder = sortOrder;
     }
 }
