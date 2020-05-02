@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Numerics;
-using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.UI;
 using Vector3 = UnityEngine.Vector3;
@@ -12,25 +9,26 @@ using Vector3 = UnityEngine.Vector3;
     typeof(BoxCollider2D))]
 public class CardController : MonoBehaviour
 {
-    private readonly int sortingOrderOnClick = 100;
+    private readonly int sortingOrderOnClick = 500;
 
     [SerializeField] private Image topSeam;
     [SerializeField] private Image mainSeam;
     [SerializeField] private Image value;
     [SerializeField] private float movingSpeed;
 
-    private Animator animator;
-
-    private Canvas overrideCanvas;
-    public int sortingOrder;
-
     private BoxCollider2D boxCollider;
+
+    private bool isCovered;
+    private bool isMoving;
 
     private Vector3 startingPosition;
 
-    public StackController parentStack;
+    private Animator animator;
 
-    public bool fromSpawn;
+    private Canvas overrideCanvas;
+    private int sortingOrder;
+
+    public StackController parentStack;
 
     public Card card;
 
@@ -47,6 +45,8 @@ public class CardController : MonoBehaviour
 
         //get collider component
         boxCollider = GetComponent<BoxCollider2D>();
+
+        isCovered = true;
     }
 
     private void OnMouseUp()
@@ -57,7 +57,7 @@ public class CardController : MonoBehaviour
         Transform newParentTransform = parentStack.transform;
         string newParentType = newParentTransform.parent.name;
 
-        Debug.Log(newParentType);
+        //Debug.Log(newParentType);
 
         //the stack has no child
         if (parentStack.transform.childCount == 0)
@@ -104,23 +104,19 @@ public class CardController : MonoBehaviour
         //the stack has child
         else
         {
-            Debug.LogFormat("PARENT {0} NOT EMPTY", parentStack.name);
-
             //get index of previous card from parenStack cardList(the last card is the this one, so we need to take the card before in the list)
             int parentStackLastIndex = parentStack.transform.childCount - 1;
 
-            CardController lastCardController = parentStack.transform.GetChild(parentStackLastIndex).GetComponent<CardController>();
+            CardController lastCardController = parentStack.lastCardController;
             Card lastCard = lastCardController.card;
 
-            Debug.LogFormat("LAST CARD: {0} ", lastCard);
-            Debug.LogFormat("THIS CARD: {0} ", card);
+            //Debug.LogFormat("LAST CARD: {0} ", lastCard);
+            //Debug.LogFormat("THIS CARD: {0} ", card);
 
             if (newParentType == "BottomStacks" && card.value == lastCard.value - 1 && card.color != lastCard.color)
             {
                 //the card actually has as  parent the last card of the stack
                 newParentTransform = lastCardController.transform;
-
-                Debug.Log(newParentTransform.GetChild(newParentTransform.childCount - 1).GetComponent<CardController>());
 
                 //CHECK IF THE CARD HAS ALREADY A CHILD CARD, IF YES DON'T MOVE THE CARD
                 if (!newParentTransform.GetChild(newParentTransform.childCount - 1).GetComponent<CardController>())
@@ -142,7 +138,10 @@ public class CardController : MonoBehaviour
                     newSortingOrder = lastCardController.overrideCanvas.sortingOrder + (int) currentZLocalOffset;
                 }
             }
-            else if (newParentType == "FinalStacks" && card.value == lastCard.value + 1 && card.seam == lastCard.seam)
+            else if (newParentType == "FinalStacks" && 
+                     card.value == lastCard.value + 1 && 
+                     card.seam == lastCard.seam && 
+                     transform.GetComponentsInChildren<CardController>().Length <= 1)
             {
                 //card can be moved to the final stacks, set parent and newPosition
                 gameObject.transform.SetParent(newParentTransform);
@@ -157,32 +156,73 @@ public class CardController : MonoBehaviour
                 newPosition = newParentTransform.position - offsetVector;
 
                 //set new sorting order of the card
-                newSortingOrder = (int)currentZLocalOffset;
+                newSortingOrder = (int) currentZLocalOffset;
 
                 //disable box collider (card no more movable)
                 SetIsMovable(false);
             }
-
-            lastCardController.CheckCoverAndTouch();
         }
 
-        MoveToPosition(newPosition, newSortingOrder);
+        //card has been moved
+        if (newPosition != startingPosition)
+        {
+            //check if card was in spawn list, if yes remove from list and adjust other cards
+            if (SpawnPlaceController.Instance.spawnedCard.Contains(this))
+            {
+                SpawnPlaceController.Instance.spawnedCard.Remove(this);
+                GameManager.Instance.deck.Remove(this);
+                if (GameManager.Instance.nextCard != -1)
+                {
+                    GameManager.Instance.nextCard--;
+                }
+                SpawnPlaceController.Instance.AdjustChildPosition();
+            }
+        }
+        else
+        {
+            if (SpawnPlaceController.Instance.spawnedCard.Contains(this))
+                newSortingOrder = sortingOrderOnClick;
+        }
+
+        SetOverrideCanvasSortingOrder(newSortingOrder, false);
+
+        //get the care controller child count (it return also itself so need to subtract 1 to ghet the actual child number)
+        if (transform.GetComponentsInChildren<CardController>().Length > 1)
+        {
+            foreach (CardController cardController in transform.GetComponentsInChildren<CardController>())
+            {
+                if (cardController != this)
+                {
+                    cardController.SetOverrideCanvasSortingOrder(cardController.GetOverrideCanvasSortingOrder() - sortingOrderOnClick + newSortingOrder - sortingOrder, false);
+                }
+            }
+        }
+
+        MoveToPosition(newPosition);
     }
 
     private void OnMouseDown()
     {
-        //save the sorting order to restore it later
-        sortingOrder = overrideCanvas.sortingOrder;
+        //Set sorting order to prevent render issues
+        SetOverrideCanvasSortingOrder(sortingOrderOnClick, true);
 
         startingPosition = transform.position;
 
+        //get the care controller child count (it return also itself so need to subtract 1 to ghet the actual child number)
+        if (transform.GetComponentsInChildren<CardController>().Length > 1)
+        {
+            foreach (CardController cardController in transform.GetComponentsInChildren<CardController>())
+            {
+                if (cardController != this)
+                {
+                    cardController.SetOverrideCanvasSortingOrder(cardController.GetOverrideCanvasSortingOrder() + sortingOrderOnClick, true);
+                }
+            }
+        }
     }
 
     private void OnMouseDrag()
     {
-        //Set sorting order to prevent render issues
-        overrideCanvas.sortingOrder = sortingOrderOnClick;
-
         //get newPosition from mouse
         Vector3 newPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
@@ -204,17 +244,9 @@ public class CardController : MonoBehaviour
         value.color = seamSprite.name == "diamonds" || seamSprite.name == "hearts" ? Color.red : Color.black;
     }
 
-    public void CheckCoverAndTouch()
-    {
-        if (transform.GetSiblingIndex() == transform.parent.childCount)
-        {
-            SetIsCovered(false);
-            SetIsCovered(true);
-        }
-    }
-
     public void SetIsCovered(bool covered)
     {
+        isCovered = covered;
         animator.SetBool("covered", covered);
     }
 
@@ -223,15 +255,47 @@ public class CardController : MonoBehaviour
         boxCollider.enabled = clickable;
     }
 
-    public void MoveToPosition(Vector3 newPosition, int sortOrder)
+    public void SetOverrideCanvasSortingOrder(int newSortingOrder, bool forLater)
     {
-        StartCoroutine(MoveToPositionCoroutine(newPosition, sortOrder));
+        //save the sorting order to restore it later
+        if (forLater)
+            sortingOrder = overrideCanvas.sortingOrder;
+
+        overrideCanvas.sortingOrder = newSortingOrder;
     }
 
-    private IEnumerator MoveToPositionCoroutine(Vector3 newPosition, int sortOrder)
-    {        
-        //restore the correct sorting order
-        overrideCanvas.sortingOrder = sortingOrder = sortOrder;
+    public int GetOverrideCanvasSortingOrder()
+    {
+        return overrideCanvas.sortingOrder;
+    }
+
+    public void CheckCovered()
+    {
+        StartCoroutine(CheckCoveredRoutine());
+    }
+
+    private IEnumerator CheckCoveredRoutine()
+    {
+        while (isCovered)
+        {
+            yield return new WaitWhile(() => isMoving);
+            yield return new WaitWhile(() => transform.parent.GetComponent<StackController>().lastCardController != this);
+
+            SetIsCovered(false);
+            SetIsMovable(true);
+
+            yield break;
+        }
+    }
+
+    public void MoveToPosition(Vector3 newPosition)
+    {
+        isMoving = true;
+        StartCoroutine(MoveToPositionRoutine(newPosition));
+    }
+
+    private IEnumerator MoveToPositionRoutine(Vector3 newPosition)
+    {
 
         float startTime = 0;
 
@@ -245,17 +309,16 @@ public class CardController : MonoBehaviour
 
             if (transform.position == newPosition)
             {
-                break;
-                Debug.Log("TEST1");
+                isMoving = false;
+
+                yield break;
             }
 
             startTime += Time.deltaTime;
 
             yield return null;
         }
-        Debug.Log("TEST2");
 
-
-
+        isMoving = false;
     }
 }

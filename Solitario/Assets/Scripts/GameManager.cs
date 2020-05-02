@@ -17,7 +17,6 @@ public class GameManager : Singleton<GameManager>
     [SerializeField] private List<StackController> bottomStacks;
     [SerializeField] private List<StackController> finalStacks;
 
-    [SerializeField] private List<CardController> deck;
 
     [SerializeField] private Button deckButton;
     [SerializeField] private Sprite deckButtonNormalSprite;
@@ -25,7 +24,9 @@ public class GameManager : Singleton<GameManager>
 
     [SerializeField] private float waitTimeForServe;
 
-    private int nextCard;
+    public int nextCard;
+
+    public List<CardController> deck;
 
     public readonly float xLocalOffset = 55f;
     public readonly float yLocalOffset = 25f;
@@ -39,14 +40,6 @@ public class GameManager : Singleton<GameManager>
     {
         //create deck and shuffle the element of the list
         NewTable();
-    }
-
-    private void Update()
-    {
-        //if (Input.GetKeyDown(KeyCode.F))
-        //{
-        //    deckStack.cardList[0].SetCovered(false);
-        //}
     }
 
     private void NewTable()
@@ -156,17 +149,25 @@ public class GameManager : Singleton<GameManager>
                 //set the new position of the card
                 Vector3 newPosition = bottomStacks[i].transform.position - offsetVector;
 
+                //set canvas sorting order of 
+                cardController.SetOverrideCanvasSortingOrder((int)currentZLocalOffset, false);
+
                 //coroutine to move gradually card to new position
-                cardController.MoveToPosition(newPosition, (int)currentZLocalOffset);
+                cardController.MoveToPosition(newPosition);
 
                 //set flag to make card discovered if is last of the list
                 if (j == i)
                 {
                     cardController.SetIsCovered(false);
                     cardController.SetIsMovable(true);
+
+                    bottomStacks[i].lastCardController = cardController;
                 }
 
                 yield return new WaitForSeconds(waitTimeForServe);
+
+                cardController.CheckCovered();
+
             }
         }
     }
@@ -182,7 +183,7 @@ public class GameManager : Singleton<GameManager>
         {
             Transform spawnPlaceTransform = SpawnPlaceController.Instance.spawnPlaceHolder.transform;
 
-            ////set the  z offset for the current card to serve on table
+            //set the  z offset for the current card to serve on table
             float currentZLocalOffset = zLocalOffset * spawnPlaceTransform.childCount;
 
             //get the current card to serve on table
@@ -192,25 +193,25 @@ public class GameManager : Singleton<GameManager>
             //set the new parent for the current card to serve on table
             cardGameObject.transform.SetParent(spawnPlaceTransform);
 
-            //add card to list
+            //add card to list and remove it from deck
             SpawnPlaceController.Instance.spawnedCard.Add(cardController);
 
             SpawnPlaceController.Instance.AdjustChildPosition();
 
             //calculate the offset in world coordinates
-            Vector3 offsetVector = spawnPlaceTransform.TransformVector(-SpawnPlaceController.Instance.boxCollider2D.offset.x, -SpawnPlaceController.Instance.boxCollider2D.offset.y, currentZLocalOffset);
+            Vector3 offsetVector = spawnPlaceTransform.TransformVector(-SpawnPlaceController.Instance.boxCollider2D.offset.x, - SpawnPlaceController.Instance.boxCollider2D.offset.y, currentZLocalOffset);
 
             //set the new position of the card
             Vector3 newPosition = spawnPlaceTransform.position - offsetVector;
 
+            //set canvas sorting order of 
+            cardController.SetOverrideCanvasSortingOrder((int)currentZLocalOffset, false);
+
             //coroutine to move gradually card to new position
-            cardController.MoveToPosition(newPosition, (int) currentZLocalOffset);
+            cardController.MoveToPosition(newPosition);
 
             //set flag to make card discovered if is last of the list
             cardController.SetIsCovered(false);
-            cardController.SetIsMovable(true);
-
-
         }
 
         nextCard++;

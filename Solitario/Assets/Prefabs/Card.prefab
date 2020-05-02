@@ -145,10 +145,8 @@ MonoBehaviour:
   topSeam: {fileID: 1231500832408865189}
   mainSeam: {fileID: 4733081471898278151}
   value: {fileID: 2351789565768946875}
-  movingSpeed: 0.5
-  sortingOrder: 0
+  movingSpeed: 0.1
   parentStack: {fileID: 0}
-  fromSpawn: 0
   card:
     value: 0
     seam: 
