@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using Util;
 using Vector3 = UnityEngine.Vector3;
 
 [RequireComponent(typeof(Animator), 
@@ -57,6 +58,8 @@ public class CardController : MonoBehaviour
         Transform newParentTransform = parentStack.transform;
         string newParentType = newParentTransform.parent.name;
 
+        int score = 0;
+
         //Debug.Log(newParentType);
 
         //the stack has no child
@@ -78,6 +81,9 @@ public class CardController : MonoBehaviour
 
                 //set new sorting order of the card
                 newSortingOrder = (int)currentZLocalOffset;
+
+                //set score for current move
+                score = 5;
             }
             else if (newParentType == "FinalStacks" && card.value == 1 &&
                      parentStack.name.IndexOf(card.seam, StringComparison.InvariantCultureIgnoreCase) != -1)
@@ -99,6 +105,10 @@ public class CardController : MonoBehaviour
 
                 //disable box collider (card no more movable)
                 SetIsMovable(false);
+
+                //set score for current move
+                score = 15;
+
             }
         }
         //the stack has child
@@ -136,6 +146,9 @@ public class CardController : MonoBehaviour
 
                     //set new sorting order of the card
                     newSortingOrder = lastCardController.overrideCanvas.sortingOrder + (int) currentZLocalOffset;
+
+                    //set score for current move
+                    score = 5;
                 }
             }
             else if (newParentType == "FinalStacks" && 
@@ -160,6 +173,9 @@ public class CardController : MonoBehaviour
 
                 //disable box collider (card no more movable)
                 SetIsMovable(false);
+
+                //set score for current move
+                score = 15;
             }
         }
 
@@ -167,20 +183,26 @@ public class CardController : MonoBehaviour
         if (newPosition != startingPosition)
         {
             //check if card was in spawn list, if yes remove from list and adjust other cards
-            if (SpawnPlaceController.Instance.spawnedCard.Contains(this))
+            if (SpawnController.Instance.cardToSpawn.Contains(this))
             {
-                SpawnPlaceController.Instance.spawnedCard.Remove(this);
-                GameManager.Instance.deck.Remove(this);
-                if (GameManager.Instance.nextCard != -1)
+                SpawnController.Instance.cardToSpawn.Remove(this);
+                if (SpawnController.Instance.nextCard != -1)
                 {
-                    GameManager.Instance.nextCard--;
+                    SpawnController.Instance.nextCard -=2;
                 }
-                SpawnPlaceController.Instance.AdjustChildPosition();
+                SpawnController.Instance.AdjustChildPosition();
             }
+
+            ////set move before staring movement of card
+            //Move newMove = new Move(GameManager.Instance.moveTypes[1], this, transform.position, newPosition, GetIsCovered(), SpawnController.Instance.nextCard);
+
+
+            //update move (ONLY IF CARD HAS BEEN MOVE TO A NEW POSITION)
+            GameManager.Instance.UpdateMoves();
         }
         else
         {
-            if (SpawnPlaceController.Instance.spawnedCard.Contains(this))
+            if (SpawnController.Instance.cardToSpawn.Contains(this))
                 newSortingOrder = sortingOrderOnClick;
         }
 
@@ -199,6 +221,10 @@ public class CardController : MonoBehaviour
         }
 
         MoveToPosition(newPosition);
+
+       //update score
+       GameManager.Instance.UpdateScore(score);
+        
     }
 
     private void OnMouseDown()
@@ -248,6 +274,11 @@ public class CardController : MonoBehaviour
     {
         isCovered = covered;
         animator.SetBool("covered", covered);
+    }
+
+    public bool GetIsCovered()
+    {
+        return isCovered;
     }
 
     public void SetIsMovable(bool clickable)
