@@ -37,6 +37,10 @@ MonoBehaviour:
     m_Address: 8
     m_ReadOnly: 0
     m_SerializedLabels: []
+  - m_GUID: 300efd394456d004fbc91eddc966b3f3
+    m_Address: alertPanel
+    m_ReadOnly: 0
+    m_SerializedLabels: []
   - m_GUID: 3329606f9b75692468d4199b43a91ec6
     m_Address: card
     m_ReadOnly: 0
@@ -79,6 +83,10 @@ MonoBehaviour:
     m_SerializedLabels: []
   - m_GUID: b0dae4d72f698f04fa739e680189ede0
     m_Address: spades
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: b86d19cacc19b0946bc77985adfbce73
+    m_Address: gameButton
     m_ReadOnly: 0
     m_SerializedLabels: []
   - m_GUID: efe003f578d656f4081ca0ae1a2ce1f3
