@@ -19,7 +19,7 @@ namespace Controller
         [SerializeField] private Button exitButton;
         // Start is called before the first frame update
 
-        public void InitializeAlertPanel(string mainText, bool buttonEnabled, string resumeText, string exitText)
+        public void InitializeAlertPanel(string mainText, bool buttonEnabled, string resumeText, string exitText, UnityAction resumeAction, UnityAction exitAction)
         {
             this.mainText.text = mainText;
 
@@ -28,13 +28,16 @@ namespace Controller
             {
                 this.resumeText.text = resumeText;
                 this.exitText.text = exitText;
+
+                resumeButton.onClick.AddListener(resumeAction);
+                exitButton.onClick.AddListener(exitAction);
             }
 
         }
 
         public void DestroyPanel()
         {
-            Destroy(this);
+            Destroy(gameObject);
         }
     }
 }

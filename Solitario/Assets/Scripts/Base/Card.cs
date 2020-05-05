@@ -1,15 +1,16 @@
 ﻿using System;
+using Manager;
 
 namespace Util
 {
     [Serializable]
     public class Card
     {
-        public int value;
-        public string seam;
-        public string color;
+        public GameManager.Values value;
+        public GameManager.Seams seam;
+        public GameManager.Colors color;
 
-        public Card(int value, string seam, string color)
+        public Card(GameManager.Values value, GameManager.Seams seam, GameManager.Colors color)
         {
             this.value = value;
             this.seam = seam;

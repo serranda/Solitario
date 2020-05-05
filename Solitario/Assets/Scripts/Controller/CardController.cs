@@ -2,6 +2,7 @@
 using System.Collections;
 using Manager;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Util;
 using Vector3 = UnityEngine.Vector3;
@@ -12,7 +13,7 @@ namespace Controller
     [RequireComponent(typeof(Animator),
     typeof(Canvas),
     typeof(BoxCollider2D))]
-    public class CardController : MonoBehaviour
+    public class CardController : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler
     {
         private readonly int sortingOrderOnClick = 500;
 
@@ -54,7 +55,7 @@ namespace Controller
             isCovered = true;
         }
 
-        private void OnMouseUp()
+        public void OnPointerUp(PointerEventData eventData)
         {
             Vector3 newPosition = startingPosition;
             int newSortingOrder = sortingOrder;
@@ -64,12 +65,10 @@ namespace Controller
 
             int score = 0;
 
-            //Debug.Log(newParentType);
-
             //the stack has no child
             if (parentStack.transform.childCount == 0)
             {
-                if (newParentType == "BottomStacks" && card.value == 13)
+                if (newParentType == "BottomStacks" && card.value == GameManager.Values.King)
                 {
                     //card is a king and can be move in the empty stack
                     gameObject.transform.SetParent(newParentTransform);
@@ -89,8 +88,8 @@ namespace Controller
                     //set score for current move
                     score = 5;
                 }
-                else if (newParentType == "FinalStacks" && card.value == 1 &&
-                         parentStack.name.IndexOf(card.seam, StringComparison.InvariantCultureIgnoreCase) != -1)
+                else if (newParentType == "FinalStacks" && card.value == GameManager.Values.Ace &&
+                         parentStack.name.IndexOf(card.seam.ToString(), StringComparison.InvariantCultureIgnoreCase) != -1)
                 {
                     //card can be moved to the final stacks, set parent and newPosition
                     gameObject.transform.SetParent(newParentTransform);
@@ -123,9 +122,6 @@ namespace Controller
 
                 CardController lastCardController = parentStack.lastCardController;
                 Card lastCard = lastCardController.card;
-
-                //Debug.LogFormat("LAST CARD: {0} ", lastCard);
-                //Debug.LogFormat("THIS CARD: {0} ", card);
 
                 if (newParentType == "BottomStacks" && card.value == lastCard.value - 1 && card.color != lastCard.color)
                 {
@@ -190,19 +186,22 @@ namespace Controller
                 if (SpawnManager.Instance.cardToSpawn.Contains(this))
                 {
                     SpawnManager.Instance.cardToSpawn.Remove(this);
-                    if (SpawnManager.Instance.nextCard != -1)
+                    if (SpawnManager.Instance.spawnedCard.transform.childCount > 0)
                     {
-                        SpawnManager.Instance.nextCard -= 2;
+                        if (SpawnManager.Instance.nextCard != -1)
+                        {
+                            SpawnManager.Instance.nextCard -= 2;
+                        }
+                        SpawnManager.Instance.AdjustChildPosition();
                     }
-                    SpawnManager.Instance.AdjustChildPosition();
+
                 }
 
                 ////set move before staring movement of card
-                //Move newMove = new Move(GameManager.Instance.moveTypes[1], this, transform.position, newPosition, GetIsCovered(), SpawnManager.Instance.nextCard);
-
-
-                //update move (ONLY IF CARD HAS BEEN MOVE TO A NEW POSITION)
-                GameManager.Instance.UpdateMoves();
+                //Move newMove = new Move(GameManager.Instance.MoveTypes[1], this, transform.position, newPosition, GetIsCovered(), SpawnManager.Instance.nextCard);
+                
+                ////update move (ONLY IF CARD HAS BEEN MOVE TO A NEW POSITION)
+                //GameManager.Instance.UpdateMoves();
             }
             else
             {
@@ -228,11 +227,12 @@ namespace Controller
 
             //update score
             GameManager.Instance.UpdateScore(score);
-
         }
 
-        private void OnMouseDown()
+        public void OnPointerDown(PointerEventData eventData)
         {
+
+            Debug.Log("POINTERCLICK");
             //Set sorting order to prevent render issues
             SetOverrideCanvasSortingOrder(sortingOrderOnClick, true);
 
@@ -251,7 +251,7 @@ namespace Controller
             }
         }
 
-        private void OnMouseDrag()
+        public void OnDrag(PointerEventData eventData)
         {
             //get newPosition from mouse
             Vector3 newPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -356,6 +356,8 @@ namespace Controller
 
             isMoving = false;
         }
+
+
     }
 }
 

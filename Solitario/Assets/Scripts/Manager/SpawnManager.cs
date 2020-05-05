@@ -10,16 +10,18 @@ namespace Manager
 {
     public class SpawnManager : Singleton<SpawnManager>
     {
-        [SerializeField] private StackController spawnPlaceHolder;
-        [SerializeField] private BoxCollider2D spawnCollider2D;
+        [SerializeField] private StackController spawnedStackController;
+        [SerializeField] private BoxCollider2D spawnedCollider2D;
 
         [SerializeField] private Sprite deckButtonNormalSprite;
         [SerializeField] private Sprite deckButtonEmptySprite;
 
         public Button deckButton;
+        public GameObject spawnedCard;
 
         public int nextCard;
         public List<CardController> cardToSpawn;
+
 
         public void SpawnCard()
         {
@@ -30,11 +32,11 @@ namespace Manager
                 RemoveAllChild(deckButton.transform);
                 deckButton.image.sprite = deckButtonNormalSprite;
 
-                //newMove = new Move(moveTypes[0]);
+                //newMove = new Move(MoveTypes[0]);
             }
             else
             {
-                Transform spawnPlaceTransform = spawnPlaceHolder.transform;
+                Transform spawnPlaceTransform = spawnedStackController.transform;
 
                 //set the  z offset for the current card to serve on table
                 float currentZLocalOffset = GameManager.Instance.zLocalOffset * spawnPlaceTransform.childCount;
@@ -49,7 +51,7 @@ namespace Manager
                 AdjustChildPosition();
 
                 //calculate the offset in world coordinates
-                Vector3 offsetVector = spawnPlaceTransform.TransformVector(-spawnCollider2D.offset.x, -spawnCollider2D.offset.y, currentZLocalOffset);
+                Vector3 offsetVector = spawnPlaceTransform.TransformVector(-spawnedCollider2D.offset.x, -spawnedCollider2D.offset.y, currentZLocalOffset);
 
                 //set the new position of the card
                 Vector3 newPosition = spawnPlaceTransform.position - offsetVector;
@@ -58,7 +60,7 @@ namespace Manager
                 cardController.SetOverrideCanvasSortingOrder((int)currentZLocalOffset, false);
 
                 ////set move before staring movement of card
-                //newMove = new Move(moveTypes[1], cardController, cardController.transform.position, newPosition, cardController.GetIsCovered(), SpawnManager.Instance.nextCard -1);
+                //newMove = new Move(MoveTypes[1], cardController, cardController.transform.position, newPosition, cardController.GetIsCovered(), SpawnManager.Instance.nextCard -1);
 
                 //coroutine to move gradually card to new position
                 cardController.MoveToPosition(newPosition);
@@ -67,8 +69,8 @@ namespace Manager
                 cardController.SetIsCovered(false);
 
             }
-
-            GameManager.Instance.UpdateMoves();
+            ////Update moves
+            //GameManager.Instance.UpdateMoves();
 
         }
 
@@ -86,8 +88,8 @@ namespace Manager
                 //adjust only last 3 card of the stack
                 if (cardPositionFromEnd == 0 || cardPositionFromEnd == 1 || cardPositionFromEnd == 2)
                 {
-                    Vector3 offsetVector = spawnPlaceHolder.transform.TransformVector(-spawnCollider2D.offset.x + GameManager.instance.xLocalOffset * cardPositionFromEnd, -spawnCollider2D.offset.y, 0);
-                    Vector3 newPosition = spawnPlaceHolder.transform.position - offsetVector;
+                    Vector3 offsetVector = spawnedStackController.transform.TransformVector(-spawnedCollider2D.offset.x + GameManager.instance.xLocalOffset * cardPositionFromEnd, -spawnedCollider2D.offset.y, 0);
+                    Vector3 newPosition = spawnedStackController.transform.position - offsetVector;
 
 
                     //set canvas sorting order of 
@@ -165,7 +167,7 @@ namespace Manager
         {
             foreach (CardController cardController in cardToSpawn)
             {
-                Transform spawnPlaceTransform = spawnPlaceHolder.transform;
+                Transform spawnPlaceTransform = spawnedStackController.transform;
 
                 //set the  z offset for the current card to serve on table
                 float currentZLocalOffset = GameManager.Instance.zLocalOffset * spawnPlaceTransform.childCount;
@@ -179,7 +181,7 @@ namespace Manager
                 AdjustChildPosition();
 
                 //calculate the offset in world coordinates
-                Vector3 offsetVector = spawnPlaceTransform.TransformVector(-spawnCollider2D.offset.x, -spawnCollider2D.offset.y, currentZLocalOffset);
+                Vector3 offsetVector = spawnPlaceTransform.TransformVector(-spawnedCollider2D.offset.x, -spawnedCollider2D.offset.y, currentZLocalOffset);
 
                 //set the new position of the card
                 Vector3 newPosition = spawnPlaceTransform.position - offsetVector;

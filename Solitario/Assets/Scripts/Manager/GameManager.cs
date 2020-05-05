@@ -35,16 +35,22 @@ namespace Manager
 
         //private Move lastMove;
 
+        private GameState currentState;
+
+        public enum Seams { Hearts, Diamonds, Clubs, Spades }
+        public enum Colors { Red, Black }
+        public enum Values { Ace, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King }
+        private enum GameState { Loading, Playing, Win }
+        public enum MoveTypes { Deck, Card }
+
         public readonly float xLocalOffset = 55f;
         public readonly float yLocalOffset = 25f;
         public readonly float zLocalOffset = 5f;
 
-        private readonly string[] seams = { "hearts", "diamonds", "clubs", "spades" };
-        private readonly string[] colors = { "red", "black" };
-        private readonly int[] values = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
-
-        public readonly string[] moveTypes = { "deck", "card" };
-
+        private void Awake()
+        {
+            currentState = GameState.Loading;
+        }
 
         private void Start()
         {
@@ -54,14 +60,17 @@ namespace Manager
 
         private void NewTable()
         {
-            AlertManager.Instance.SpawnAlertPanel("in attesa che il mazzo venga mischiato...", false, null, null);
+            AlertManager.Instance.SpawnWaitShufflePanel();
             StartCoroutine(NewCardDeck());
             StartCoroutine(ServeCard());
         }
 
         private void Update()
         {
-            CheckWin();
+            if (currentState == GameState.Playing)
+            {
+                CheckWin();
+            }
         }
 
         private void CheckWin()
@@ -72,6 +81,9 @@ namespace Manager
                 stackSpades.transform.childCount == 13)
             {
                 //WIN!!
+                AlertManager.Instance.SpawnWinPanel();
+
+                currentState = GameState.Win;
             }
         }
 
@@ -82,11 +94,13 @@ namespace Manager
                 for (int j = 0; j < 13; j++)
                 {
                     //create a new card
-                    Card newCard = new Card(values[j], seams[i], colors[i / 2]);
+                    Card newCard = new Card((Values) Enum.GetValues(typeof(Values)).GetValue(j), 
+                        (Seams)Enum.GetValues(typeof(Seams)).GetValue(i), 
+                        (Colors)Enum.GetValues(typeof(Colors)).GetValue(i / 2));
 
                     //get the index of the sprites
-                    int seamIndex = Array.IndexOf(seams, newCard.seam);
-                    int valueIndex = Array.IndexOf(values, newCard.value);
+                    int seamIndex = Array.IndexOf(Enum.GetValues(typeof(Seams)), newCard.seam);
+                    int valueIndex = Array.IndexOf(Enum.GetValues(typeof(Values)), newCard.value);
 
                     //load new card seam's sprite
                     AsyncOperationHandle<Sprite> handleSprite = seamsReference[seamIndex].LoadAssetAsync<Sprite>();
@@ -107,7 +121,7 @@ namespace Manager
                     GameObject newCardGameObject = Instantiate(newCardPrefab, SpawnManager.Instance.deckButton.transform, false);
 
                     //change GameObject name
-                    newCardGameObject.name = newCard.value + newCard.seam;
+                    newCardGameObject.name = newCard.value.ToString() + newCard.seam.ToString();
 
                     //get gameObject CardController component and set new card sprites
                     CardController newCardController = newCardGameObject.GetComponent<CardController>();
@@ -147,14 +161,16 @@ namespace Manager
                     SpawnManager.Instance.cardToSpawn[n] = shuffledCard;
                 }
             }
+
+            currentState = GameState.Playing;
         }
 
         private IEnumerator ServeCard()
         {
             //wait until all card GameObject are instantiated
-            yield return new WaitWhile(() => SpawnManager.Instance.cardToSpawn.Count < 52);
+            yield return new WaitUntil(() =>currentState == GameState.Playing);
 
-            AlertManager.Instance.GetActiveAlertController().DestroyPanel();
+            AlertManager.Instance.CloseAlertPanel();
 
             //serve progressively the card on the table
             for (int i = 0; i < bottomStacks.Count; i++)
@@ -204,13 +220,13 @@ namespace Manager
             }
         }
 
-        public void UpdateMoves()
-        {
-            moveCounter++;
-            movesText.text = moveCounter.ToString();
+        //public void UpdateMoves()
+        //{
+        //    moveCounter++;
+        //    movesText.text = moveCounter.ToString();
 
-            //lastMove = move;
-        }
+        //    //lastMove = move;
+        //}
 
         public void UpdateScore(int deltaScore)
         {
@@ -227,7 +243,7 @@ namespace Manager
         //    if (lastMove.type != "")
         //    {
         //        //last move was from deck
-        //        if (lastMove.type == moveTypes[0])
+        //        if (lastMove.type == MoveTypes[0])
         //        {
         //            SpawnManager.Instance.RestoreAllChild();
         //        }

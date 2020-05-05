@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Controller;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Events;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Util;
 
@@ -14,14 +15,14 @@ namespace Manager
         [SerializeField] private AssetReference alertReference;
         [SerializeField] private Canvas mainCanvas;
 
-        public delegate void ResumeDelegate();
+        private AlertController activeAlert;
 
-        public void SpawnAlertPanel(string mainText, bool buttonEnabled, string resumeText, string exitText)
+        private void OpenAlertPanel(string mainText, bool buttonEnabled = false, string resumeText = null, string exitText = null, UnityAction resumeAction = null, UnityAction exitAction = null)
         {
-            StartCoroutine(SpawnAlertPanelRoutine(mainText, buttonEnabled, resumeText, exitText));
+            StartCoroutine(OpenAlertPanelRoutine(mainText, buttonEnabled, resumeText, exitText, resumeAction, exitAction));
         }
 
-        private IEnumerator SpawnAlertPanelRoutine(string mainText, bool buttonEnabled, string resumeText, string exitText)
+        private IEnumerator OpenAlertPanelRoutine(string mainText, bool buttonEnabled, string resumeText, string exitText, UnityAction resumeAction, UnityAction exitAction)
         {
             AsyncOperationHandle<GameObject> handleAlertPanel = alertReference.LoadAssetAsync<GameObject>();
             yield return handleAlertPanel;
@@ -32,18 +33,46 @@ namespace Manager
 
             AlertController newAlertController = newAlertGameObject.GetComponent<AlertController>();
 
-            newAlertController.InitializeAlertPanel(mainText, buttonEnabled, resumeText, exitText);
+            newAlertController.InitializeAlertPanel(mainText, buttonEnabled, resumeText, exitText, resumeAction, exitAction);
+
+            activeAlert = newAlertController;
         }
 
-        public AlertController GetActiveAlertController()
+        public void CloseAlertPanel()
         {
-            return FindObjectOfType<AlertController>();
+            activeAlert.DestroyPanel();
         }
 
-        public void resumeHandle(ResumeDelegate resumeDelegate)
+        public void SpawnWaitShufflePanel()
+        {
+            OpenAlertPanel("in attesa che il mazzo venga mischiato...");
+        }
+
+        public void SpawnWinPanel()
+        {
+            OpenAlertPanel("congratulazioni, hai vinto!!! vuoi giocare una nuova partita?", true, "nuova partita", "menù iniziale", StartNewGame, GoToStartMenu);
+        }
+
+        public void SpawnOptionPanel()
+        {
+            OpenAlertPanel("vuoi iniziare una nuova partita?", true, "riprendi", "nuova partita", CloseAlertPanel, StartNewGame);
+        }
+
+        public void SpawnHomePanel()
+        {
+            OpenAlertPanel("proseguendo, interromperai la partita ed i progressi andranno persi. vuoi tornare al menù iniziale?", true, "riprendi", "menù iniziale", CloseAlertPanel, GoToStartMenu);
+        }
+
+        private void StartNewGame()
         {
 
         }
+
+        private void GoToStartMenu()
+        {
+            SceneManager.Instance.LoadScene(0);
+        }
+
     }
 }
 
