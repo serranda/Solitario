@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 5799128435593340838}
   - component: {fileID: 3783487861862178715}
   - component: {fileID: 7337780055066376586}
+  - component: {fileID: 8916827923212732871}
   m_Layer: 5
   m_Name: SpawnedCard
   m_TagString: Untagged
@@ -34,7 +35,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -60, y: 0}
+  m_AnchoredPosition: {x: -55.5, y: 0}
   m_SizeDelta: {x: 109, y: 164}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!61 &3783487861862178715
@@ -47,7 +48,7 @@ BoxCollider2D:
   m_Enabled: 1
   m_Density: 1
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
@@ -61,7 +62,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 109, y: 160}
+  m_Size: {x: 105, y: 160}
   m_EdgeRadius: 0
 --- !u!114 &7337780055066376586
 MonoBehaviour:
@@ -76,6 +77,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lastCardController: {fileID: 0}
+--- !u!222 &8916827923212732871
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1725949850044405550}
+  m_CullTransparentMesh: 0
 --- !u!1 &6392814688542770300
 GameObject:
   m_ObjectHideFlags: 0
@@ -111,7 +120,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 250, y: 164}
+  m_SizeDelta: {x: 220, y: 164}
   m_Pivot: {x: 1, y: 1}
 --- !u!1 &6392814689697929474
 GameObject:
@@ -146,11 +155,11 @@ RectTransform:
   m_Father: {fileID: 6392814688542770303}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 1}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 55.5, y: 0}
   m_SizeDelta: {x: 109, y: 164}
-  m_Pivot: {x: 1, y: 1}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6392814689697929479
 CanvasRenderer:
   m_ObjectHideFlags: 0

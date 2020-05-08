@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Controller;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,90 +11,143 @@ namespace Manager
 {
     public class SpawnManager : Singleton<SpawnManager>
     {
-        [SerializeField] private StackController spawnedStackController;
-        [SerializeField] private BoxCollider2D spawnedCollider2D;
+        [SerializeField] private float waitTimeForServe;
 
         [SerializeField] private Sprite deckButtonNormalSprite;
         [SerializeField] private Sprite deckButtonEmptySprite;
 
-        public Button deckButton;
         public GameObject spawnedCard;
+        public Button deckButton;
 
-        public int nextCard;
-        public List<CardController> cardToSpawn;
+        public int lastCardSpawned;
+        public List<CardController> deck;
 
+        public readonly float xLocalOffset = 55f;
+        public readonly float yLocalOffset = 25f;
+        public readonly float zLocalOffset = 5f;
+
+        public IEnumerator ServeCard()
+        {
+            //close waiting panel
+            AlertManager.Instance.CloseAlertPanel();
+
+            //serve progressively the card on the table
+            for (int i = 0; i < GameManager.Instance.bottomStacks.Count; i++)
+            {
+                for (int j = 0; j < i + 1; j++)
+                {
+                    //set the y and z offset for the current card to serve on table
+                    float currentYLocalOffset = yLocalOffset * j;
+                    float currentZLocalOffset = zLocalOffset * (j + 1);
+
+                    lastCardSpawned++;
+
+                    //get the current card to serve on table
+                    CardController cardController = deck[lastCardSpawned];
+                    GameObject cardGameObject = cardController.gameObject;
+
+                    cardController.served = true;
+
+                    //set the new parent for the current card to serve on table
+                    cardGameObject.transform.SetParent(GameManager.Instance.bottomStacks[i].transform);
+
+                    //calculate the offset in world coordinates
+                    Vector3 offsetVector = GameManager.Instance.bottomStacks[i].transform.TransformVector(0, currentYLocalOffset, currentZLocalOffset);
+
+                    //set the new position of the card
+                    Vector3 newPosition = GameManager.Instance.bottomStacks[i].transform.position - offsetVector;
+
+                    //set canvas sorting order of 
+                    cardController.SetOverrideCanvasSortingOrder((int)currentZLocalOffset, false);
+
+
+                    //coroutine to move gradually card to new position
+                    cardController.MoveToPosition(newPosition);
+
+                    //set flag to make card discovered if is last of the list
+                    if (j == i)
+                    {
+                        cardController.SetIsCovered(false);
+                        cardController.SetIsMovable(true);
+
+                        GameManager.Instance.bottomStacks[i].lastCardController = cardController;
+                    }
+
+                    yield return new WaitForSeconds(waitTimeForServe);
+
+                    cardController.CheckCovered();
+
+                }
+            }
+
+            StartCoroutine(GameManager.Instance.CheckWin());
+        }
 
         public void SpawnCard()
         {
-            //Move newMove;
-
-            if (nextCard == -1)
+            if (lastCardSpawned == -1)
             {
-                RemoveAllChild(deckButton.transform);
+                ResetSpawnedChildren(deckButton.transform);
                 deckButton.image.sprite = deckButtonNormalSprite;
+
+                lastCardSpawned++;
+                return;
 
                 //newMove = new Move(MoveTypes[0]);
             }
-            else
+
+            //increment next card index
+            lastCardSpawned++;
+
+
+            //if next card already been served, keep increment next card index
+            while (deck[lastCardSpawned].served)
             {
-                Transform spawnPlaceTransform = spawnedStackController.transform;
-
-                //set the  z offset for the current card to serve on table
-                float currentZLocalOffset = GameManager.Instance.zLocalOffset * spawnPlaceTransform.childCount;
-
-                //get the current card to serve on table
-                CardController cardController = cardToSpawn[nextCard];
-                GameObject cardGameObject = cardController.gameObject;
-
-                //set the new parent for the current card to serve on table
-                cardGameObject.transform.SetParent(spawnPlaceTransform);
-
-                AdjustChildPosition();
-
-                //calculate the offset in world coordinates
-                Vector3 offsetVector = spawnPlaceTransform.TransformVector(-spawnedCollider2D.offset.x, -spawnedCollider2D.offset.y, currentZLocalOffset);
-
-                //set the new position of the card
-                Vector3 newPosition = spawnPlaceTransform.position - offsetVector;
-
-                //set canvas sorting order of 
-                cardController.SetOverrideCanvasSortingOrder((int)currentZLocalOffset, false);
-
-                ////set move before staring movement of card
-                //newMove = new Move(MoveTypes[1], cardController, cardController.transform.position, newPosition, cardController.GetIsCovered(), SpawnManager.Instance.nextCard -1);
-
-                //coroutine to move gradually card to new position
-                cardController.MoveToPosition(newPosition);
-
-                //set flag to make card discovered
-                cardController.SetIsCovered(false);
-
+                lastCardSpawned++;
             }
-            ////Update moves
-            //GameManager.Instance.UpdateMoves();
 
+            Transform spawnedCardTransform = spawnedCard.transform;
+
+            //get the current card to serve on table
+            CardController cardController = deck[lastCardSpawned];
+            GameObject cardGameObject = cardController.gameObject;
+
+            //set the new parent for the current card to serve on table
+            cardGameObject.transform.SetParent(spawnedCardTransform);
+
+            SetSpawnedChildren();
+
+            //set flag to make card discovered
+            cardController.SetIsCovered(false);
+
+
+            //if all next card already served, reached end of spawnable card
+            //set next card to -1 and set button to empty sprite
+            IsDeckFinished();
         }
 
-        public void SetEmptyDeckButton()
+        public void SetSpawnedChildren()
         {
-            deckButton.image.sprite = deckButtonEmptySprite;
-        }
+            //get spawned card list
+            List<CardController> cardControllers = spawnedCard.GetComponentsInChildren<CardController>().ToList();
 
-        public void AdjustChildPosition()
-        {
-            foreach (CardController cardController in cardToSpawn)
+            //for each card spawned, check its index relative to the previous list
+            //if it's between the last 3 card, adjust the position
+            foreach (CardController cardController in cardControllers)
             {
-                int cardPositionFromEnd = nextCard - cardToSpawn.IndexOf(cardController);
 
-                //adjust only last 3 card of the stack
+                int cardPositionFromEnd = cardControllers.Count - (cardControllers.IndexOf(cardController) + 1);
+
                 if (cardPositionFromEnd == 0 || cardPositionFromEnd == 1 || cardPositionFromEnd == 2)
                 {
-                    Vector3 offsetVector = spawnedStackController.transform.TransformVector(-spawnedCollider2D.offset.x + GameManager.instance.xLocalOffset * cardPositionFromEnd, -spawnedCollider2D.offset.y, 0);
-                    Vector3 newPosition = spawnedStackController.transform.position - offsetVector;
+                    //set the  z offset for the current card to serve on table
+                    float currentZLocalOffset = zLocalOffset * (cardControllers.IndexOf(cardController) + 1);
 
+                    Vector3 offsetVector = spawnedCard.transform.TransformVector(xLocalOffset * cardPositionFromEnd, 0, currentZLocalOffset);
+                    Vector3 newPosition = spawnedCard.transform.position - offsetVector;
 
                     //set canvas sorting order of 
-                    cardController.SetOverrideCanvasSortingOrder((int)GameManager.Instance.zLocalOffset * cardToSpawn.IndexOf(cardController), false);
+                    cardController.SetOverrideCanvasSortingOrder((int)currentZLocalOffset, false);
 
                     cardController.MoveToPosition(newPosition);
                 }
@@ -102,42 +156,35 @@ namespace Manager
                 cardController.SetIsMovable(cardPositionFromEnd == 0);
             }
 
-            //end of the deck, no need to update next card
-            if (nextCard != -1)
-            {
-                nextCard++;
-            }
-
-            if (nextCard == cardToSpawn.Count)
-            {
-                nextCard = -1;
-
-                SetEmptyDeckButton();
-            }
-
         }
 
-        public void RemoveAllChild(Transform newParent)
+        private void IsDeckFinished()
         {
-            StartCoroutine(RemoveAllChildRoutine(newParent));
+            if (lastCardSpawned == deck.Count - 1)
+            {
+                lastCardSpawned = -1;
+                deckButton.image.sprite = deckButtonEmptySprite;
+            }
         }
 
-        private IEnumerator RemoveAllChildRoutine(Transform newParent)
+        public void ResetSpawnedChildren(Transform newParent)
         {
-            foreach (CardController cardController in cardToSpawn)
+            StartCoroutine(ResetSpawnedChildrenRoutine(newParent));
+        }
+
+        private IEnumerator ResetSpawnedChildrenRoutine(Transform newParent)
+        {
+            List<CardController> cardControllers = spawnedCard.GetComponentsInChildren<CardController>().ToList();
+
+            foreach (CardController cardController in cardControllers)
             {
                 GameObject cardGameObject = cardController.gameObject;
 
                 //set the new parent for the current card to serve on table
                 cardGameObject.transform.SetParent(newParent, false);
 
-                RectTransform newParentRectTransform = (RectTransform)newParent;
-
-                //calculate the offset in world coordinates
-                Vector3 offsetVector = newParent.TransformVector(newParentRectTransform.rect.width / 2, newParentRectTransform.rect.height / 2, 0);
-
                 //set the new position of the card
-                Vector3 newPosition = newParent.position - offsetVector;
+                Vector3 newPosition = newParent.position;
 
                 //set flag to make card discovered if is last of the list
                 cardController.SetIsCovered(true);
@@ -152,60 +199,10 @@ namespace Manager
                 yield return new WaitForEndOfFrame();
             }
 
-            nextCard = 0;
+            lastCardSpawned = 0;
 
             //update score
             GameManager.Instance.UpdateScore(-100);
-        }
-
-        public void RestoreAllChild()
-        {
-            StartCoroutine(RestoreAllChildRoutine());
-        }
-
-        private IEnumerator RestoreAllChildRoutine()
-        {
-            foreach (CardController cardController in cardToSpawn)
-            {
-                Transform spawnPlaceTransform = spawnedStackController.transform;
-
-                //set the  z offset for the current card to serve on table
-                float currentZLocalOffset = GameManager.Instance.zLocalOffset * spawnPlaceTransform.childCount;
-
-                //get the current card to serve on table
-                GameObject cardGameObject = cardController.gameObject;
-
-                //set the new parent for the current card to serve on table
-                cardGameObject.transform.SetParent(spawnPlaceTransform);
-
-                AdjustChildPosition();
-
-                //calculate the offset in world coordinates
-                Vector3 offsetVector = spawnPlaceTransform.TransformVector(-spawnedCollider2D.offset.x, -spawnedCollider2D.offset.y, currentZLocalOffset);
-
-                //set the new position of the card
-                Vector3 newPosition = spawnPlaceTransform.position - offsetVector;
-
-                //set canvas sorting order of 
-                cardController.SetOverrideCanvasSortingOrder((int)currentZLocalOffset, false);
-
-                //coroutine to move gradually card to new position
-                cardController.MoveToPosition(newPosition);
-
-                //set flag to make card discovered
-                cardController.SetIsCovered(false);
-
-                yield return new WaitForEndOfFrame();
-
-            }
-
-            nextCard = -1;
-
-            //set sprite for empty deck
-            SetEmptyDeckButton();
-
-            //update score
-            GameManager.Instance.UpdateScore(100);
         }
     }
 }

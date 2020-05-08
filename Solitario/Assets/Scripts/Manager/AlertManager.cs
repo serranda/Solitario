@@ -19,6 +19,8 @@ namespace Manager
 
         private void OpenAlertPanel(string mainText, bool buttonEnabled = false, string resumeText = null, string exitText = null, UnityAction resumeAction = null, UnityAction exitAction = null)
         {
+            GameManager.Instance.currentState = GameManager.GameState.Pause;
+
             StartCoroutine(OpenAlertPanelRoutine(mainText, buttonEnabled, resumeText, exitText, resumeAction, exitAction));
         }
 
@@ -41,6 +43,8 @@ namespace Manager
         public void CloseAlertPanel()
         {
             activeAlert.DestroyPanel();
+
+            GameManager.Instance.currentState = GameManager.GameState.Playing;
         }
 
         public void SpawnWaitShufflePanel()
@@ -70,7 +74,8 @@ namespace Manager
 
         private void GoToStartMenu()
         {
-            SceneManager.Instance.LoadScene(0);
+            PanelManager.Instance.SwapToMenuPanel();
+            CloseAlertPanel();
         }
 
     }

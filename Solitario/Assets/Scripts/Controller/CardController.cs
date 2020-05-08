@@ -13,7 +13,7 @@ namespace Controller
     [RequireComponent(typeof(Animator),
     typeof(Canvas),
     typeof(BoxCollider2D))]
-    public class CardController : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler
+    public class CardController : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerClickHandler, IDragHandler
     {
         private readonly int sortingOrderOnClick = 500;
 
@@ -33,6 +33,8 @@ namespace Controller
 
         private Canvas overrideCanvas;
         private int sortingOrder;
+
+        public bool served;
 
         public StackController parentStack;
 
@@ -55,6 +57,26 @@ namespace Controller
             isCovered = true;
         }
 
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            //Set sorting order to prevent render issues
+            SetOverrideCanvasSortingOrder(sortingOrderOnClick, true);
+
+            startingPosition = transform.position;
+
+            //get the care controller child count (it return also itself so need to subtract 1 to ghet the actual child number)
+            if (transform.GetComponentsInChildren<CardController>().Length > 1)
+            {
+                foreach (CardController cardController in transform.GetComponentsInChildren<CardController>())
+                {
+                    if (cardController != this)
+                    {
+                        cardController.SetOverrideCanvasSortingOrder(cardController.GetOverrideCanvasSortingOrder() + sortingOrderOnClick, true);
+                    }
+                }
+            }
+        }
+
         public void OnPointerUp(PointerEventData eventData)
         {
             Vector3 newPosition = startingPosition;
@@ -74,7 +96,7 @@ namespace Controller
                     gameObject.transform.SetParent(newParentTransform);
 
                     //set the y and z offset for the current card to serve on table
-                    float currentZLocalOffset = GameManager.Instance.zLocalOffset;
+                    float currentZLocalOffset = SpawnManager.Instance.zLocalOffset;
 
                     //calculate the offset in world coordinates
                     Vector3 offsetVector = newParentTransform.TransformVector(0, 0, currentZLocalOffset);
@@ -95,7 +117,7 @@ namespace Controller
                     gameObject.transform.SetParent(newParentTransform);
 
                     //set the z offset for the current card to serve on table
-                    float currentZLocalOffset = GameManager.Instance.zLocalOffset;
+                    float currentZLocalOffset = SpawnManager.Instance.zLocalOffset;
 
                     //calculate the offset in world coordinates
                     Vector3 offsetVector = newParentTransform.TransformVector(0, 0, currentZLocalOffset);
@@ -135,8 +157,8 @@ namespace Controller
                         gameObject.transform.SetParent(newParentTransform);
 
                         //set the y and z offset for the current card to serve on table
-                        float currentYLocalOffset = GameManager.Instance.yLocalOffset * 2;
-                        float currentZLocalOffset = GameManager.Instance.zLocalOffset;
+                        float currentYLocalOffset = SpawnManager.Instance.yLocalOffset * 2;
+                        float currentZLocalOffset = SpawnManager.Instance.zLocalOffset;
 
                         //calculate the offset in world coordinates
                         Vector3 offsetVector = newParentTransform.TransformVector(0, currentYLocalOffset, currentZLocalOffset);
@@ -160,13 +182,10 @@ namespace Controller
                     gameObject.transform.SetParent(newParentTransform);
 
                     //set the z offset for the current card to serve on table
-                    float currentZLocalOffset = GameManager.Instance.zLocalOffset * (parentStackLastIndex + 2);
-
-                    //calculate the offset in world coordinates
-                    Vector3 offsetVector = newParentTransform.TransformVector(0, 0, currentZLocalOffset);
+                    float currentZLocalOffset = SpawnManager.Instance.zLocalOffset * (parentStackLastIndex + 2);
 
                     //set the new position of the card
-                    newPosition = newParentTransform.position - offsetVector;
+                    newPosition = newParentTransform.position;
 
                     //set new sorting order of the card
                     newSortingOrder = (int)currentZLocalOffset;
@@ -182,34 +201,22 @@ namespace Controller
             //card has been moved
             if (newPosition != startingPosition)
             {
-                //check if card was in spawn list, if yes remove from list and adjust other cards
-                if (SpawnManager.Instance.cardToSpawn.Contains(this))
+                if (!served)
                 {
-                    SpawnManager.Instance.cardToSpawn.Remove(this);
-                    if (SpawnManager.Instance.spawnedCard.transform.childCount > 0)
-                    {
-                        if (SpawnManager.Instance.nextCard != -1)
-                        {
-                            SpawnManager.Instance.nextCard -= 2;
-                        }
-                        SpawnManager.Instance.AdjustChildPosition();
-                    }
+                    served = true;
+
+                    SpawnManager.Instance.lastCardSpawned--;
+
+                    SpawnManager.Instance.SetSpawnedChildren();
 
                 }
 
                 ////set move before staring movement of card
-                //Move newMove = new Move(GameManager.Instance.MoveTypes[1], this, transform.position, newPosition, GetIsCovered(), SpawnManager.Instance.nextCard);
+                //Move newMove = new Move(GameManager.Instance.MoveTypes[1], this, transform.position, newPosition, GetIsCovered(), SpawnManager.Instance.lastCardSpawned);
                 
                 ////update move (ONLY IF CARD HAS BEEN MOVE TO A NEW POSITION)
                 //GameManager.Instance.UpdateMoves();
             }
-            else
-            {
-                if (SpawnManager.Instance.cardToSpawn.Contains(this))
-                    newSortingOrder = sortingOrderOnClick;
-            }
-
-            SetOverrideCanvasSortingOrder(newSortingOrder, false);
 
             //get the care controller child count (it return also itself so need to subtract 1 to ghet the actual child number)
             if (transform.GetComponentsInChildren<CardController>().Length > 1)
@@ -225,30 +232,15 @@ namespace Controller
 
             MoveToPosition(newPosition);
 
+            SetOverrideCanvasSortingOrder(newSortingOrder, false);
+
             //update score
             GameManager.Instance.UpdateScore(score);
         }
 
-        public void OnPointerDown(PointerEventData eventData)
+        public void OnPointerClick(PointerEventData eventData)
         {
 
-            Debug.Log("POINTERCLICK");
-            //Set sorting order to prevent render issues
-            SetOverrideCanvasSortingOrder(sortingOrderOnClick, true);
-
-            startingPosition = transform.position;
-
-            //get the care controller child count (it return also itself so need to subtract 1 to ghet the actual child number)
-            if (transform.GetComponentsInChildren<CardController>().Length > 1)
-            {
-                foreach (CardController cardController in transform.GetComponentsInChildren<CardController>())
-                {
-                    if (cardController != this)
-                    {
-                        cardController.SetOverrideCanvasSortingOrder(cardController.GetOverrideCanvasSortingOrder() + sortingOrderOnClick, true);
-                    }
-                }
-            }
         }
 
         public void OnDrag(PointerEventData eventData)
@@ -290,10 +282,10 @@ namespace Controller
             boxCollider.enabled = clickable;
         }
 
-        public void SetOverrideCanvasSortingOrder(int newSortingOrder, bool forLater)
+        public void SetOverrideCanvasSortingOrder(int newSortingOrder, bool saveOldValue)
         {
             //save the sorting order to restore it later
-            if (forLater)
+            if (saveOldValue)
                 sortingOrder = overrideCanvas.sortingOrder;
 
             overrideCanvas.sortingOrder = newSortingOrder;
@@ -356,8 +348,6 @@ namespace Controller
 
             isMoving = false;
         }
-
-
     }
 }
 
