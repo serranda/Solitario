@@ -160,7 +160,7 @@ namespace Manager
 
         private void IsDeckFinished()
         {
-            if (lastCardSpawned == deck.Count - 1)
+            if (lastCardSpawned >= deck.Count - 1)
             {
                 lastCardSpawned = -1;
                 deckButton.image.sprite = deckButtonEmptySprite;

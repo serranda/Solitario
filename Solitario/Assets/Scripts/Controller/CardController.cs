@@ -28,6 +28,7 @@ namespace Controller
         private bool isMoving;
 
         private Vector3 startingPosition;
+        private Vector3 startingOffset;
 
         private Animator animator;
 
@@ -64,6 +65,10 @@ namespace Controller
 
             startingPosition = transform.position;
 
+            startingOffset = Camera.main.ScreenToWorldPoint(Input.mousePosition) - new Vector3(transform.position.x, transform.position.y, 0);
+
+            Debug.Log(startingOffset);
+
             //get the care controller child count (it return also itself so need to subtract 1 to ghet the actual child number)
             if (transform.GetComponentsInChildren<CardController>().Length > 1)
             {
@@ -75,6 +80,18 @@ namespace Controller
                     }
                 }
             }
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            //get newPosition from mouse
+            Vector3 newPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+            //set correct z value for new position
+            newPosition.z = transform.position.z;
+
+            //set new position to gameObject
+            transform.position = newPosition - new Vector3(startingOffset.x, startingOffset.y, 0);
         }
 
         public void OnPointerUp(PointerEventData eventData)
@@ -205,7 +222,8 @@ namespace Controller
                 {
                     served = true;
 
-                    SpawnManager.Instance.lastCardSpawned--;
+                    if(SpawnManager.Instance.lastCardSpawned != -1)
+                        SpawnManager.Instance.lastCardSpawned--;
 
                     SpawnManager.Instance.SetSpawnedChildren();
 
@@ -243,17 +261,7 @@ namespace Controller
 
         }
 
-        public void OnDrag(PointerEventData eventData)
-        {
-            //get newPosition from mouse
-            Vector3 newPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
-            //set correct z value for new position
-            newPosition.z = transform.position.z;
-
-            //set new position to gameObject
-            transform.position = newPosition;
-        }
 
         public void InitializeSprites(Sprite seamSprite, Sprite valueSprite)
         {
