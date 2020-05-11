@@ -67,8 +67,6 @@ namespace Controller
 
             startingOffset = Camera.main.ScreenToWorldPoint(Input.mousePosition) - new Vector3(transform.position.x, transform.position.y, 0);
 
-            Debug.Log(startingOffset);
-
             //get the care controller child count (it return also itself so need to subtract 1 to ghet the actual child number)
             if (transform.GetComponentsInChildren<CardController>().Length > 1)
             {
@@ -222,15 +220,12 @@ namespace Controller
                 {
                     served = true;
 
-                    if(SpawnManager.Instance.lastCardSpawned != -1)
-                        SpawnManager.Instance.lastCardSpawned--;
-
                     SpawnManager.Instance.SetSpawnedChildren();
 
                 }
 
                 ////set move before staring movement of card
-                //Move newMove = new Move(GameManager.Instance.MoveTypes[1], this, transform.position, newPosition, GetIsCovered(), SpawnManager.Instance.lastCardSpawned);
+                //Move newMove = new Move(GameManager.Instance.MoveTypes[1], this, transform.position, newPosition, GetIsCovered(), SpawnManager.Instance.nextCard);
                 
                 ////update move (ONLY IF CARD HAS BEEN MOVE TO A NEW POSITION)
                 //GameManager.Instance.UpdateMoves();
@@ -260,8 +255,6 @@ namespace Controller
         {
 
         }
-
-
 
         public void InitializeSprites(Sprite seamSprite, Sprite valueSprite)
         {

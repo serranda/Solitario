@@ -19,7 +19,7 @@ namespace Manager
         public GameObject spawnedCard;
         public Button deckButton;
 
-        public int lastCardSpawned;
+        public int nextCard;
         public List<CardController> deck;
 
         public readonly float xLocalOffset = 55f;
@@ -40,10 +40,8 @@ namespace Manager
                     float currentYLocalOffset = yLocalOffset * j;
                     float currentZLocalOffset = zLocalOffset * (j + 1);
 
-                    lastCardSpawned++;
-
                     //get the current card to serve on table
-                    CardController cardController = deck[lastCardSpawned];
+                    CardController cardController = deck[nextCard];
                     GameObject cardGameObject = cardController.gameObject;
 
                     cardController.served = true;
@@ -77,6 +75,9 @@ namespace Manager
 
                     cardController.CheckCovered();
 
+                    //set next card to spawn
+                    SetNextCard();
+
                 }
             }
 
@@ -85,45 +86,30 @@ namespace Manager
 
         public void SpawnCard()
         {
-            if (lastCardSpawned == -1)
+            if (nextCard == -1)
             {
                 ResetSpawnedChildren(deckButton.transform);
                 deckButton.image.sprite = deckButtonNormalSprite;
-
-                lastCardSpawned++;
-                return;
-
-                //newMove = new Move(MoveTypes[0]);
             }
-
-            //increment next card index
-            lastCardSpawned++;
-
-
-            //if next card already been served, keep increment next card index
-            while (deck[lastCardSpawned].served)
+            else
             {
-                lastCardSpawned++;
+                Transform spawnedCardTransform = spawnedCard.transform;
+
+                //get the current card to serve on table
+                CardController cardController = deck[nextCard];
+                GameObject cardGameObject = cardController.gameObject;
+
+                //set the new parent for the current card to serve on table
+                cardGameObject.transform.SetParent(spawnedCardTransform);
+
+                SetSpawnedChildren();
+
+                //set flag to make card discovered
+                cardController.SetIsCovered(false);
             }
 
-            Transform spawnedCardTransform = spawnedCard.transform;
-
-            //get the current card to serve on table
-            CardController cardController = deck[lastCardSpawned];
-            GameObject cardGameObject = cardController.gameObject;
-
-            //set the new parent for the current card to serve on table
-            cardGameObject.transform.SetParent(spawnedCardTransform);
-
-            SetSpawnedChildren();
-
-            //set flag to make card discovered
-            cardController.SetIsCovered(false);
-
-
-            //if all next card already served, reached end of spawnable card
-            //set next card to -1 and set button to empty sprite
-            IsDeckFinished();
+            //set next card to spawn
+            SetNextCard();
         }
 
         public void SetSpawnedChildren()
@@ -158,13 +144,30 @@ namespace Manager
 
         }
 
-        private void IsDeckFinished()
+        private void SetNextCard()
         {
-            if (lastCardSpawned >= deck.Count - 1)
+            //if next card already been served, keep increment next card index
+            do
             {
-                lastCardSpawned = -1;
+                nextCard++;
+                if (CheckIsDeckFinished())
+                {
+                    return;
+                }
+            } while (deck[nextCard].served);
+        }
+
+        private bool CheckIsDeckFinished()
+        {
+            if (nextCard >= deck.Count)
+            {
+                nextCard = -1;
                 deckButton.image.sprite = deckButtonEmptySprite;
+
+                return true;
             }
+
+            return false;
         }
 
         public void ResetSpawnedChildren(Transform newParent)
@@ -196,10 +199,8 @@ namespace Manager
                 //coroutine to move gradually card to new position
                 cardController.MoveToPosition(newPosition);
 
-                yield return new WaitForEndOfFrame();
+                yield return new WaitForSeconds(waitTimeForServe);
             }
-
-            lastCardSpawned = 0;
 
             //update score
             GameManager.Instance.UpdateScore(-100);
